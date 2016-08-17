@@ -1,4 +1,4 @@
-from common.exception import InvalidValueException
+from pyboot.common.exception import InvalidValueException
 
 valid_order_by_values = ["asc", "desc"]
 

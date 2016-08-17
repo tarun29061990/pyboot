@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from common.conf import Conf
+from pyboot.common.conf import Conf
 
 
 class HttpClient(object):
@@ -67,4 +67,3 @@ class HttpClient(object):
         r = requests.put(**kwargs)
         r.raise_for_status()
         return r
-

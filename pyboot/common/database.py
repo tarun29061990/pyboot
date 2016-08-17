@@ -6,8 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from common.conf import Conf
-from util.common import DatetimeUtil
+from pyboot.common.conf import Conf
+from pyboot.util.common import DatetimeUtil
 
 
 # TODO: Need to make it non-sigleton and make it generic
