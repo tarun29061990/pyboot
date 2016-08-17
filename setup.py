@@ -1,15 +1,20 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 from codecs import open
-from os import path
+import os
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
+package_name = "pyboot"
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+packages = [package_name]
+for dirpath, dirname, filenames in os.walk(os.path.join(package_name)):
+    packages.append('.'.join(dirpath.split(os.sep)))
+
 setup(
-    name='pyboot',
+    name=package_name,
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -56,7 +61,7 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    packages=["client", "common", "util"],
+    packages=["pyboot.client", "pyboot.common", "util"],
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
