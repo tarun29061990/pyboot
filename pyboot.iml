@@ -7,8 +7,11 @@
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/bin" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/include" />
       <excludeFolder url="file://$MODULE_DIR$/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/pyboot.egg-info" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
