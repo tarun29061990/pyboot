@@ -4,17 +4,17 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
-from pyboot.model import DatabaseModelBase
+from pyboot.model import DBModelBase
 
 
-class Client(DatabaseModelBase):
+class Client(DBModelBase):
     __tablename__ = "clients"
 
     name = Column(String)
     person_id = Column(Integer, ForeignKey("person.id"))
 
 
-class Person(DatabaseModelBase):
+class Person(DBModelBase):
     __tablename__ = "persons"
 
     name = Column(String)
