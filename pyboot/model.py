@@ -21,6 +21,7 @@ TYPE_STR = "str"
 TYPE_DATETIME = "datetime"
 TYPE_DATE = "date"
 TYPE_ENUM = "enum"
+TYPE_LIST = "list"
 TYPE_OBJ = "obj"
 TYPE_UNKNOWN = "unknown"
 
@@ -53,6 +54,17 @@ class Model(JSONSerializable):
                 obj_dict[name] = DateUtil.iso_to_date(value)
             else:
                 obj_dict[name] = Validator.date(value)
+        elif type == TYPE_OBJ:
+            if isinstance(value, Model):
+                obj_dict[name] = value.to_json_dict()
+            else:
+                obj_dict[name] = value
+        elif type == TYPE_LIST:
+            for value_item in value:
+                if isinstance(value_item, Model):
+                    obj_dict[name] = value_item.to_json_dict()
+                else:
+                    obj_dict[name] = value_item
         elif type == TYPE_UNKNOWN:
             obj_dict[name] = value
         else:
@@ -79,6 +91,17 @@ class Model(JSONSerializable):
                 setattr(self, name, DateUtil.iso_to_date(value))
             else:
                 setattr(self, name, Validator.date(value))
+        elif type == TYPE_OBJ:
+            if isinstance(value, Model):
+                setattr(self, name, value.from_json_dict())
+            else:
+                setattr(self, name, value)
+        elif type == TYPE_LIST:
+            for value_item in value:
+                if isinstance(value_item, Model):
+                    setattr(self, name, value_item.to_json_dict())
+                else:
+                    setattr(self, name, value_item)
         elif type == TYPE_UNKNOWN:
             setattr(self, name, value)
         else:
@@ -153,6 +176,7 @@ class DatabaseModel(Model):
     @classmethod
     def _get_fields(cls):
         if cls._fields: return cls._fields
+
         columns = inspect(cls).columns
         if not columns: return None
         cls._fields = {}
@@ -174,6 +198,16 @@ class DatabaseModel(Model):
                 cls._fields[column.key] = TYPE_OBJ
             else:
                 cls._fields[column.key] = TYPE_UNKNOWN
+
+        relationships = inspect(cls).relationships
+        for relation in relationships:
+            if relation.direction.name == "ONETOMANY":
+                cls._fields[relation.key] = TYPE_LIST
+            elif relation.direction.name == "ONETOONE":
+                cls._fields[relation.key] = TYPE_OBJ
+            else:
+                cls._fields[relation.key] = TYPE_UNKNOWN
+
         return cls._fields
 
     @classmethod
