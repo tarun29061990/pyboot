@@ -201,9 +201,9 @@ class DatabaseModel(Model):
 
         relationships = inspect(cls).relationships
         for relation in relationships:
-            if relation.direction.name == "ONETOMANY":
+            if relation.direction.name == "ONETOMANY" or relation.direction.name == "MANYTOMANY":
                 cls._fields[relation.key] = TYPE_LIST
-            elif relation.direction.name == "ONETOONE":
+            elif relation.direction.name == "ONETOONE" or relation.direction.name == "MANYTOONE":
                 cls._fields[relation.key] = TYPE_OBJ
             else:
                 cls._fields[relation.key] = TYPE_UNKNOWN
