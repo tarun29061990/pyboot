@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
 
+from flask import render_template
 from flask import request
 from werkzeug.exceptions import BadRequest
 
@@ -26,6 +27,30 @@ class Decorator(object):
 
 
 class Controller(Decorator):
+    def view_controller(self):
+        def decorator(f):
+            @wraps(f)
+            def view_response_handler(*args, **kwargs):
+                try:
+                    return f(*args, **kwargs)
+                except NotFoundException as e:
+                    logging.warning("Not found [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/server_error.html", error=str(e)), 404
+                except (InvalidInputException, InvalidValueException, InvalidStateException) as e:
+                    logging.warning("Bad request [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/server_error.html", error=str(e)), 400
+                except AccessDeniedException as e:
+                    logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/access_denied.html"), 403
+                except Exception as e:
+                    logging.error("Internal error [%s %s]: %s" % (request.method, request.url, e))
+                    logging.exception(e)
+                    return render_template("error/server_error.html"), 500
+
+            return view_response_handler
+
+        return decorator
+
     def api_controller(self):
         def decorator(f):
             @wraps(f)
