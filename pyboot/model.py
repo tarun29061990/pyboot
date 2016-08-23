@@ -238,4 +238,4 @@ class DatabaseModel(Model):
         return query
 
 
-DatabaseModelBase = declarative_base(cls=DatabaseModel)
+DbModelBase = declarative_base(cls=DatabaseModel)
