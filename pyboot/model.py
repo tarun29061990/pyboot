@@ -12,7 +12,6 @@ from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm import Session
 
 from pyboot.util import Parser, DateTimeUtil, Validator, DateUtil
-from pyboot.json import JSONSerializable
 
 TYPE_INT = "int"
 TYPE_FLOAT = "float"
@@ -24,6 +23,14 @@ TYPE_ENUM = "enum"
 TYPE_LIST = "list"
 TYPE_OBJ = "obj"
 TYPE_UNKNOWN = "unknown"
+
+
+class JSONSerializable(object):
+    def to_json_dict(self, include: list = None) -> dict:
+        return {}
+
+    def from_json_dict(self, json_dict: dict):
+        return self
 
 
 class Model(JSONSerializable):

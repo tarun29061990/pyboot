@@ -2,12 +2,24 @@ import logging
 
 import requests
 
-from pyboot.conf import Conf
+from pyboot.model import JSONSerializable
+
+
+class HttpResponse(JSONSerializable):
+    def __init__(self, code: int = 0, message: str = "Success"):
+        self.code = code
+        self.message = message
+
+    def to_json_dict(self, include: list = None) -> dict:
+        json_dict = super().to_json_dict(include)
+        json_dict["code"] = self.code
+        json_dict["message"] = self.message
+        return json_dict
 
 
 class HttpClient(object):
-    def __init__(self):
-        self.__api_timeout = Conf.get("api_timeout", default=60)
+    def __init__(self, api_timeout=60):
+        self.__api_timeout = api_timeout
 
     def set_timeout(self, timeout):
         self.__api_timeout = timeout
