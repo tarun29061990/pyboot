@@ -12,7 +12,7 @@ from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm import Session
 
 from pyboot.json import JSONSerializable
-from pyboot.util.common import Parser, DatetimeUtil, Validator, DateUtil
+from pyboot.util.common import Parser, DateTimeUtil, Validator, DateUtil
 
 TYPE_INT = "int"
 TYPE_FLOAT = "float"
@@ -46,7 +46,7 @@ class Model(JSONSerializable):
             obj_dict[name] = Parser.bool(value)
         elif type == TYPE_DATETIME:
             if isinstance(value, str):
-                obj_dict[name] = DatetimeUtil.iso_to_dt_local(value)
+                obj_dict[name] = DateTimeUtil.iso_to_dt_local(value)
             else:
                 obj_dict[name] = Validator.datetime(value)
         elif type == TYPE_DATE:
@@ -83,7 +83,7 @@ class Model(JSONSerializable):
             setattr(self, name, Parser.bool(value))
         elif type == TYPE_DATETIME:
             if isinstance(value, str):
-                setattr(self, name, DatetimeUtil.iso_to_dt_local(value))
+                setattr(self, name, DateTimeUtil.iso_to_dt_local(value))
             else:
                 setattr(self, name, Validator.datetime(value))
         elif type == TYPE_DATE:
