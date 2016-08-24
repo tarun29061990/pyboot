@@ -33,6 +33,18 @@ class JSONSerializable(object):
         return self
 
 
+class HttpResponse(JSONSerializable):
+    def __init__(self, code: int = 0, message: str = "Success"):
+        self.code = code
+        self.message = message
+
+    def to_json_dict(self, include: list = None) -> dict:
+        json_dict = super().to_json_dict(include)
+        json_dict["code"] = self.code
+        json_dict["message"] = self.message
+        return json_dict
+
+
 class Model(JSONSerializable):
     _fields = None
 
@@ -212,13 +224,6 @@ class DatabaseModel(Model):
                 cls._fields[relation.key] = TYPE_LIST
             else:
                 cls._fields[relation.key] = TYPE_OBJ
-
-                # if relation.direction.name == "ONETOMANY" or relation.direction.name == "MANYTOMANY":
-                #     cls._fields[relation.key] = TYPE_LIST
-                # elif relation.direction.name == "ONETOONE" or relation.direction.name == "MANYTOONE":
-                #     cls._fields[relation.key] = TYPE_OBJ
-                # else:
-                #     cls._fields[relation.key] = TYPE_UNKNOWN
 
         return cls._fields
 
