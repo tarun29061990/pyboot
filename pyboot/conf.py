@@ -42,11 +42,11 @@ class Conf(object):
 class Db(object):
     __Session = None
 
-    def __init__(self, host=None, port=3306, user_id=None, password=None, db_name=None, charset="utf8",
+    def __init__(self, host=None, port=3306, username=None, password=None, db_name=None, charset="utf8",
                  init_pool_size=1, max_pool_size=5, pool_recycle_delay=600, sql_logging=False):
         self.host = host
         self.port = port
-        self.user_id = user_id
+        self.username = username
         self.password = password
         self.db_name = db_name
         self.charset = charset
@@ -61,8 +61,8 @@ class Db(object):
         return self
 
     def get_engine(self):
-        db_baseurl = "mysql://%s/%s?charset=%s&user=%s&passwd=%s" % (
-            self.host, self.db_name, self.charset, self.user_id, self.password)
+        db_baseurl = "mysql://%s:%s/%s?user=%s&passwd=%s&charset=%s" % (
+            self.host, self.port, self.db_name, self.username, self.password, self.charset)
         logging.info("DB Baseurl: %s, Init pool size: %s, Max pool size: %s, Pool recycle delay: %s" % (
             db_baseurl, self.init_pool_size, self.max_pool_size, self.pool_recycle_delay))
         return create_engine(db_baseurl, echo=self.sql_logging, poolclass=QueuePool, pool_size=self.init_pool_size,
