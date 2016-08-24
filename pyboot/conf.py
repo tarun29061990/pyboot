@@ -27,6 +27,7 @@ class Conf(object):
         self.app_conf = yaml.load(stream)
         stream.close()
         logging.debug("Config initialized")
+        return self
 
     def get(self, key, default=None):
         if key not in self.app_conf: return default
@@ -55,6 +56,7 @@ class Db(object):
     def init(self):
         Db.__Session = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=self.get_engine())
         logging.debug("DbConfig initialized")
+        return self
 
     def get_engine(self):
         db_baseurl = "mysql://%s/%s?charset=%s&user=%s&passwd=%s" % (
