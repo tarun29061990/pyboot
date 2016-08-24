@@ -61,8 +61,8 @@ class Db(object):
         return self
 
     def get_engine(self):
-        db_baseurl = "mysql://%s:%s/%s?user=%s&passwd=%s&charset=%s" % (
-            self.host, self.port, self.db_name, self.username, self.password, self.charset)
+        db_baseurl = "mysql://%s:%s@%s:%s/%s?charset=%s" % (
+            self.username, self.password, self.host, self.port, self.db_name, self.charset)
         logging.info("DB Baseurl: %s, Init pool size: %s, Max pool size: %s, Pool recycle delay: %s" % (
             db_baseurl, self.init_pool_size, self.max_pool_size, self.pool_recycle_delay))
         return create_engine(db_baseurl, echo=self.sql_logging, poolclass=QueuePool, pool_size=self.init_pool_size,
