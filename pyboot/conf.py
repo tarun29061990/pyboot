@@ -40,8 +40,6 @@ class Conf(object):
 
 
 class Db(object):
-    __Session = None
-
     def __init__(self, host=None, port=3306, username=None, password=None, db_name=None, charset="utf8",
                  init_pool_size=1, max_pool_size=5, pool_recycle_delay=600, sql_logging=False):
         self.host = host
@@ -54,9 +52,10 @@ class Db(object):
         self.max_pool_size = max_pool_size
         self.pool_recycle_delay = pool_recycle_delay
         self.sql_logging = sql_logging
+        self.__Session = None
 
     def init(self):
-        Db.__Session = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=self.get_engine())
+        self.__Session = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=self.get_engine())
         logging.debug("DbConfig initialized")
         return self
 
@@ -70,7 +69,7 @@ class Db(object):
                              pool_recycle=int(self.pool_recycle_delay))
 
     def __get_session(self):
-        return Db.__Session()
+        return self.__Session()
 
     @contextmanager
     def get(self):
