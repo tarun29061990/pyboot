@@ -5,7 +5,7 @@ from flask import render_template
 from flask import request
 from werkzeug.exceptions import BadRequest
 
-from pyboot.common.exception import NotFoundException, InvalidInputException, InvalidValueException, \
+from pyboot.exception import NotFoundException, InvalidInputException, InvalidValueException, \
     AccessDeniedException, DuplicateValueException, UnauthorizedException, InvalidStateException
 from pyboot.json import HttpResponse
 from pyboot.util.json import json_response

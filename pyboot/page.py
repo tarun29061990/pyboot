@@ -42,20 +42,6 @@ class Page(JSONSerializable):
             self.is_next_page = False
         self.count = len(self.items)
 
-    # def gen_page_urls(self, baseurl: str, params: dict):
-    #     clean_params = DictUtil.delete_null_values(params)
-    #     params_str = ""
-    #     for key in clean_params:
-    #         params_str += "&" + key + "=" + clean_params[key]
-    #
-    #     if self.is_prev_page:
-    #         self.prev_page_url = "%s?start=%s&count=%s%s" % (
-    #             baseurl, self.prev_page_start, self.prev_page_count, params_str)
-    #
-    #     if self.is_next_page:
-    #         self.next_page_url = "%s?start=%s&count=%s%s" % (
-    #             baseurl, self.next_page_start, self.next_page_count, params_str)
-
     def to_json_dict(self, include: list = None):
         json_dict = super().to_json_dict(include)
         json_dict["count"] = self.count
@@ -64,3 +50,17 @@ class Page(JSONSerializable):
         json_dict["is_prev"] = self.is_prev_page
         json_dict["is_next"] = self.is_next_page
         return json_dict
+
+        # def gen_page_urls(self, baseurl: str, params: dict):
+        #     clean_params = DictUtil.delete_null_values(params)
+        #     params_str = ""
+        #     for key in clean_params:
+        #         params_str += "&" + key + "=" + clean_params[key]
+        #
+        #     if self.is_prev_page:
+        #         self.prev_page_url = "%s?start=%s&count=%s%s" % (
+        #             baseurl, self.prev_page_start, self.prev_page_count, params_str)
+        #
+        #     if self.is_next_page:
+        #         self.next_page_url = "%s?start=%s&count=%s%s" % (
+        #             baseurl, self.next_page_start, self.next_page_count, params_str)

@@ -2,11 +2,11 @@ import datetime
 import json
 
 from flask import Response
-from pyboot.model import Model
 
-from pyboot.util.common import DatetimeUtil, DateUtil, TimeUtil
-from pyboot.common.conf import MIME_TYPE_JSON
+from pyboot.conf import MIME_TYPE_JSON
 from pyboot.json import JSONSerializable
+from pyboot.model import Model
+from pyboot.util.common import DateTimeUtil, DateUtil, TimeUtil
 
 
 def json_response(obj, include=None, status=200, mimetype=MIME_TYPE_JSON):
@@ -31,7 +31,7 @@ def __serialize_object(obj):
     if isinstance(obj, bytes):
         return obj.decode("utf-8")
     elif isinstance(obj, datetime.datetime):
-        return DatetimeUtil.dt_to_iso(obj)
+        return DateTimeUtil.dt_to_iso(obj)
     elif isinstance(obj, datetime.date):
         return DateUtil.date_to_iso(obj)
     elif isinstance(obj, datetime.time):

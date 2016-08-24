@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from pyboot.common.conf import Conf
+from pyboot.conf import Conf
 
 
 class HttpClient(object):

@@ -7,7 +7,7 @@ import iso8601
 import pytz
 import tzlocal
 
-from pyboot.common.exception import InvalidValueException
+from pyboot.exception import InvalidValueException
 
 
 class Enum(set):
@@ -66,7 +66,7 @@ class TimeUtil(object):
         return time.isoformat()
 
 
-class DatetimeUtil(object):
+class DateTimeUtil(object):
     default_tz = tzlocal.get_localzone()
 
     @staticmethod
