@@ -6,7 +6,7 @@ from flask import request
 from werkzeug.exceptions import BadRequest
 
 from pyboot.exception import NotFoundException, InvalidInputException, InvalidValueException, \
-    AccessDeniedException, DuplicateValueException, UnauthorizedException, InvalidStateException
+    AccessDeniedException, DuplicateValueException, InvalidStateException, AuthFailedException
 from pyboot.json import HttpResponse
 from pyboot.util.json import json_response
 
@@ -17,6 +17,11 @@ class Decorator(object):
 
 
 class Controller(Decorator):
+    def __init__(self):
+        self.not_found_template = None
+        self.server_error_template = None
+        self.access_denied_template = None
+
     def view_controller(self):
         def decorator(f):
             @wraps(f)
@@ -25,17 +30,29 @@ class Controller(Decorator):
                     return f(*args, **kwargs)
                 except NotFoundException as e:
                     logging.warning("Not found [%s %s]: %s" % (request.method, request.url, e))
-                    return render_template("error/server_error.html", error=str(e)), 404
+                    if self.not_found_template:
+                        return render_template(self.not_found_template, exception=e), 404
+                    else:
+                        return "Not found [404]: " + str(e)
                 except (InvalidInputException, InvalidValueException, InvalidStateException) as e:
                     logging.warning("Bad request [%s %s]: %s" % (request.method, request.url, e))
-                    return render_template("error/server_error.html", error=str(e)), 400
+                    if self.server_error_template:
+                        return render_template(self.server_error_template, exception=e), 400
+                    else:
+                        return "Server error [500]: " + str(e)
                 except AccessDeniedException as e:
                     logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
-                    return render_template("error/access_denied.html"), 403
+                    if self.access_denied_template:
+                        return render_template(self.access_denied_template, exception=e), 403
+                    else:
+                        return "Access Denied [403]: " + str(e)
                 except Exception as e:
                     logging.error("Internal error [%s %s]: %s" % (request.method, request.url, e))
                     logging.exception(e)
-                    return render_template("error/server_error.html"), 500
+                    if self.server_error_template:
+                        return render_template(self.server_error_template, exception=e), 500
+                    else:
+                        return "Server error [500]: " + str(e)
 
             return view_response_handler
 
@@ -60,8 +77,8 @@ class Controller(Decorator):
                 except AccessDeniedException as e:
                     logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
                     return json_response(HttpResponse(code=403, message=str(e))), 403
-                except UnauthorizedException as e:
-                    logging.warning("Unauthorized (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
+                except AuthFailedException as e:
+                    logging.warning("Authentication Failed [%s %s]: %s" % (request.method, request.url, e))
                     return json_response(HttpResponse(code=401, message=str(e))), 401
                 except Exception as e:
                     logging.error("Internal error [%s %s]: %s" % (request.method, request.url, e))
@@ -71,61 +88,3 @@ class Controller(Decorator):
             return api_response_handler
 
         return decorator
-
-# class Security(Decorator):
-#     def auth_required(self):
-#         def decorator(f):
-#             @wraps(f)
-#             def auth_handler(*args, **kwargs):
-#                 if not g.employee_cookie:
-#                     raise AuthenticationFailedException("Authentication failed")
-#                 return f(*args, **kwargs)
-#
-#             return auth_handler
-#
-#         return decorator
-#
-# class Permissions(Decorator):
-#     def __init__(self):
-#         pass
-#
-#     def init(self):
-#         pass
-#
-#     def __validate_permission(self, user, expected_permissions):
-#         if not user or not expected_permissions:
-#             raise UnauthorizedException("Entity name or permission name can not be empty")
-#         if not user.id and user.role:
-#             raise UnauthorizedException("User name and role not found")
-#         # Add check for designer.
-#         if user.role == LaunchpadRole.INTERIOR_DESIGNER.value:
-#             user_permissions = BouncerService().get_role_permissions_list(LaunchpadRole.INTERIOR_DESIGNER.value)
-#         else:
-#             bouncer_id = user.id
-#             user_permissions = BouncerService().get_user_permissions_list(bouncer_id)
-#         is_permission_found = False
-#
-#         for permission in expected_permissions:
-#             if user_permissions and permission in user_permissions:
-#                 is_permission_found = True
-#             else:
-#                 raise AccessDeniedException("permission : %s couldn't found for user" % permission)
-#
-#         if not is_permission_found:
-#             raise AccessDeniedException(
-#                 "Couldn't found required permissions : %s for user" % json.dumps(expected_permissions))
-#
-#         return True
-#
-#     def required(self, *permission):
-#         def decorator(f):
-#             @wraps(f)
-#             def permission_handler(*args, **kwargs):
-#                 if self.__validate_permission(g.user, permission):
-#                     return f(*args, **kwargs)
-#                 else:
-#                     raise AccessDeniedException()
-#
-#             return permission_handler
-#
-#         return decorator
