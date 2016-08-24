@@ -1,30 +1,21 @@
+import datetime
 import logging
 from contextlib import contextmanager
 from logging import config
 
-import datetime
 import yaml
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from pyboot.util.common import DateTimeUtil
+from pyboot.util import DateTimeUtil
 
 MIME_TYPE_JSON = "application/json"
 
 
-# TODO: Need to make it non-sigleton and make it generic
 class Conf(object):
-    __instance = None
-
     def __init__(self):
         self.app_conf = None
-
-    @staticmethod
-    def get_instance():
-        if Conf.__instance is None:
-            Conf.__instance = Conf()
-        return Conf.__instance
 
     def init(self, app_conf_path, logger_conf_path):
         stream = open(logger_conf_path, "r")
@@ -37,60 +28,50 @@ class Conf(object):
         stream.close()
         logging.debug("Config initialized")
 
-    def get_value(self, key, default=None):
+    def get(self, key, default=None):
         if key not in self.app_conf: return default
         return self.app_conf[key]
 
-    def set_value(self, key, value):
+    def set(self, key, value):
         self.app_conf[key] = value
 
-    @staticmethod
-    def get(key, default=None):
-        return Conf.get_instance().get_value(key, default)
 
-    @staticmethod
-    def set(key, value):
-        Conf.get_instance().set_value(key, value)
-
-
-# TODO: Need to make it non-sigleton and make it generic
 class Db(object):
     __Session = None
-    __instance = None
 
-    @staticmethod
-    def get_instance():
-        if Db.__instance is None:
-            Db.__instance = Db()
-        return Db.__instance
+    def __init__(self, host=None, port=3306, user_id=None, password=None, db_name=None, charset="utf8",
+                 init_pool_size=1, max_pool_size=5, pool_recycle_delay=600, sql_logging=False):
+        self.host = host
+        self.port = port
+        self.user_id = user_id
+        self.password = password
+        self.db_name = db_name
+        self.charset = charset
+        self.init_pool_size = init_pool_size
+        self.max_pool_size = max_pool_size
+        self.pool_recycle_delay = pool_recycle_delay
+        self.sql_logging = sql_logging
 
     def init(self):
         Db.__Session = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=self.get_engine())
         logging.debug("DbConfig initialized")
 
     def get_engine(self):
-        db_conf = Conf.get("database")
         db_baseurl = "mysql://%s/%s?charset=%s&user=%s&passwd=%s" % (
-            db_conf["host"], db_conf["name"], db_conf["charset"], db_conf["user"], db_conf["password"])
+            self.host, self.db_name, self.charset, self.user_id, self.password)
         logging.info("DB Baseurl: %s, Init pool size: %s, Max pool size: %s, Pool recycle delay: %s" % (
-            db_baseurl, db_conf["init_pool_size"], db_conf["max_pool_size"], db_conf["pool_recycle_delay"]))
-        return create_engine(db_baseurl, echo=db_conf["sql_logging"], poolclass=QueuePool,
-                             pool_size=db_conf["init_pool_size"],
-                             max_overflow=int(db_conf["max_pool_size"]) - int(db_conf["init_pool_size"]),
-                             pool_recycle=db_conf["pool_recycle_delay"])
+            db_baseurl, self.init_pool_size, self.max_pool_size, self.pool_recycle_delay))
+        return create_engine(db_baseurl, echo=self.sql_logging, poolclass=QueuePool, pool_size=self.init_pool_size,
+                             max_overflow=int(self.max_pool_size) - int(self.init_pool_size),
+                             pool_recycle=int(self.pool_recycle_delay))
 
     def __get_session(self):
         return Db.__Session()
 
-    @staticmethod
-    def get_db():
-        return Db.get_instance().__get_session()
-
-    @staticmethod
     @contextmanager
-    def get():
+    def get(self):
         start_time = datetime.datetime.now()
-        db = Db.get_db()
+        db = self.__get_session()
         logging.debug("Connection time: %s milliseconds" % DateTimeUtil.diff(start_time, datetime.datetime.now()))
 
         try:
