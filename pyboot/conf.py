@@ -2,7 +2,13 @@ import logging
 from contextlib import contextmanager
 from logging import config
 
+import datetime
 import yaml
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
+
+from pyboot.util.common import DateTimeUtil
 
 MIME_TYPE_JSON = "application/json"
 
@@ -85,7 +91,7 @@ class Db(object):
     def get():
         start_time = datetime.datetime.now()
         db = Db.get_db()
-        logging.debug("Connection time: %s milliseconds" % DatetimeUtil.diff(start_time, datetime.datetime.now()))
+        logging.debug("Connection time: %s milliseconds" % DateTimeUtil.diff(start_time, datetime.datetime.now()))
 
         try:
             yield db
