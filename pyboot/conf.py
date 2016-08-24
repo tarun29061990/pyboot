@@ -14,16 +14,18 @@ MIME_TYPE_JSON = "application/json"
 
 
 class Conf(object):
-    def __init__(self):
+    def __init__(self, app_conf_file, logger_conf_file):
+        self.app_conf_file = app_conf_file
+        self.logger_conf_file = logger_conf_file
         self.app_conf = None
 
-    def init(self, app_conf_path, logger_conf_path):
-        stream = open(logger_conf_path, "r")
+    def init(self):
+        stream = open(self.logger_conf_file, "r")
         config.dictConfig(yaml.load(stream))
         stream.close()
         logging.debug("Logging initialized")
 
-        stream = open(app_conf_path, "r")
+        stream = open(self.app_conf_file, "r")
         self.app_conf = yaml.load(stream)
         stream.close()
         logging.debug("Config initialized")
