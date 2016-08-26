@@ -5,7 +5,7 @@ from flask import Response
 
 from pyboot.util import DateTimeUtil, DateUtil, TimeUtil
 from pyboot.conf import MIME_TYPE_JSON
-from pyboot.model import Model, JSONSerializable
+from pyboot.model import JSONSerializable
 
 
 def json_response(obj, include=None, status=200, mimetype=MIME_TYPE_JSON):
@@ -35,8 +35,6 @@ def __serialize_object(obj):
         return DateUtil.date_to_iso(obj)
     elif isinstance(obj, datetime.time):
         return TimeUtil.time_to_iso(obj)
-    elif issubclass(obj.__class__, Model):
-        return obj.to_json_dict()
     elif issubclass(obj.__class__, JSONSerializable):
         return obj.to_json_dict()
     else:

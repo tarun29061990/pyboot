@@ -73,17 +73,6 @@ class Model(JSONSerializable):
                 obj_dict[name] = DateUtil.iso_to_date(value)
             else:
                 obj_dict[name] = Validator.date(value)
-        elif type == TYPE_OBJ:
-            if isinstance(value, Model):
-                obj_dict[name] = value.to_json_dict()
-            else:
-                obj_dict[name] = value
-        elif type == TYPE_LIST:
-            for value_item in value:
-                if isinstance(value_item, Model):
-                    obj_dict[name] = value_item.to_json_dict()
-                else:
-                    obj_dict[name] = value_item
         elif type == TYPE_UNKNOWN:
             obj_dict[name] = value
         else:
@@ -110,17 +99,6 @@ class Model(JSONSerializable):
                 setattr(self, name, DateUtil.iso_to_date(value))
             else:
                 setattr(self, name, Validator.date(value))
-        elif type == TYPE_OBJ:
-            if isinstance(value, Model):
-                setattr(self, name, value.from_json_dict())
-            else:
-                setattr(self, name, value)
-        elif type == TYPE_LIST:
-            for value_item in value:
-                if isinstance(value_item, Model):
-                    setattr(self, name, value_item.to_json_dict())
-                else:
-                    setattr(self, name, value_item)
         elif type == TYPE_UNKNOWN:
             setattr(self, name, value)
         else:
@@ -128,24 +106,19 @@ class Model(JSONSerializable):
 
     def to_dict(self):
         obj_dict = {}
-        if self.id: obj_dict["id"] = self.id
-
         fields = self.__class__._get_fields()
         if not fields: return obj_dict
         for field_name in fields.keys():
             self._to_dict_field(obj_dict, field_name, fields[field_name])
-
         return obj_dict
 
     def from_dict(self, obj_dict: dict):
         if not obj_dict: return
-        if "id" in obj_dict: self.id = obj_dict["id"]
 
         fields = self.__class__._get_fields()
         if not fields: return self
         for field_name in fields:
             self._from_dict_field(obj_dict, field_name, fields[field_name])
-
         return self
 
     def to_json_dict(self, include: list = None) -> dict:
@@ -154,8 +127,11 @@ class Model(JSONSerializable):
         fields = self.__class__._get_fields()
         if not fields: return json_dict
         for field_name in fields.keys():
-            if fields[field_name] == TYPE_OBJ:
+            type = fields[field_name]
+            if type == TYPE_OBJ:
                 self._include_obj(json_dict, include, field_name)
+            elif type == TYPE_LIST:
+                self._include_obj_list(json_dict, include, field_name)
         return json_dict
 
     def from_json_dict(self, json_dict: dict):
@@ -164,18 +140,30 @@ class Model(JSONSerializable):
         fields = self.__class__._get_fields()
         if not fields: return self
         for field_name in fields:
-            if fields[field_name] == TYPE_OBJ:
+            type = fields[field_name]
+            if type == TYPE_OBJ:
                 self._exclude_obj(json_dict, field_name)
         return self
+
+    def _include_obj_list(self, json_dict: dict, include: list, name: str):
+        json_list = []
+        obj_list = getattr(self, name, None) if name in include else None
+        if obj_list and isinstance(obj_list, list):
+            for obj in obj_list:
+                if isinstance(obj, JSONSerializable):
+                    obj_list.append(obj.to_json_dict())
+                else:
+                    obj_list.append(obj)
+        json_dict[name] = json_list
 
     def _include_obj(self, json_dict: dict, include: list, name: str):
         if not include: include = []
         field_name = name + "_id"
 
         sub_obj = getattr(self, name, None) if name in include else None
-        value = getattr(self, field_name, None)
+        value = getattr(self, field_name, None) if field_name in self.__dict__ else None
         if sub_obj:
-            if isinstance(sub_obj, Model): json_dict[name] = sub_obj.to_dict()
+            if isinstance(sub_obj, JSONSerializable): json_dict[name] = sub_obj.to_json_dict()
         elif value:
             json_dict[name] = {"id": value}
         elif name in include:
@@ -184,9 +172,10 @@ class Model(JSONSerializable):
         if field_name in json_dict: del json_dict[field_name]
 
     def _exclude_obj(self, json_dict: dict, name: str):
-        if not json_dict: return
-        if name in json_dict and "id" in json_dict[name]:
-            setattr(self, name + "_id", json_dict[name]["id"])
+        if not json_dict or name not in json_dict: return
+        obj = json_dict[name]
+        field_name = name + "_id"
+        if "id" in obj and field_name in self.__class__._fields: setattr(self, field_name, obj["id"])
 
 
 class DatabaseModel(Model):
@@ -226,6 +215,17 @@ class DatabaseModel(Model):
                 cls._fields[relation.key] = TYPE_OBJ
 
         return cls._fields
+
+    def to_dict(self):
+        obj_dict = super().to_dict()
+        if self.id: obj_dict["id"] = self.id
+        return obj_dict
+
+    def from_dict(self, obj_dict: dict):
+        if not obj_dict: return
+        if "id" in obj_dict: self.id = obj_dict["id"]
+        super().to_dict()
+        return self
 
     @classmethod
     def _query(cls, query: Query, start: int = None, count: int = None, order_by=None) -> Query:
