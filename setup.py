@@ -77,7 +77,7 @@ setup(
         'PyYAML>=3.11',
         'SQLAlchemy>=1.0.9',
         'mysqlclient>=1.3.7',
-        'tzlocal>=1.1.3',
+        'tzlocal>=1.2.2',
         'Flask>=0.10.1',
         'pycrypto>=2.6.1',
         'requests>=2.9.1'
