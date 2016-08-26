@@ -4,7 +4,7 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
-from pyboot.model import DBModelBase
+from pyboot.db import DBModelBase
 
 
 class Client(DBModelBase):
