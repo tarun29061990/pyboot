@@ -10,13 +10,6 @@ import tzlocal
 from pyboot.common.exception import InvalidValueException
 
 
-class Enum(set):
-    def __getattr__(self, name):
-        if name in self:
-            return name
-        raise AttributeError
-
-
 class FileUtil(object):
     @staticmethod
     def get_ext_with_dot(file):
