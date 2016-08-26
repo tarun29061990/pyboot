@@ -1,3 +1,5 @@
+from enum import Enum
+
 from sqlalchemy import Boolean
 from pyboot.page import Page
 from sqlalchemy import Column
@@ -29,9 +31,15 @@ TYPE_OBJ = "obj"
 TYPE_UNKNOWN = "unknown"
 
 
+class FilterOperationEnum(Enum):
+    IN = "in"
+    EQUAL = "equal"
+    RANGE = "range"
+
+
 class FilterOperation(object):
-    def __init__(self, operation, column, value):
-        self.operation = operation
+    def __init__(self, operation: FilterOperationEnum, column: str, value):
+        self.operation = operation.value
         self.column = column
         self.value = value
 
