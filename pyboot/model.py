@@ -29,6 +29,20 @@ TYPE_OBJ = "obj"
 TYPE_UNKNOWN = "unknown"
 
 
+class FilterOperation(object):
+    def __init__(self, operation, column, value):
+        self.operation = operation
+        self.column = column
+        self.value = value
+
+    def db_filter(self):
+        return {
+            "op": self.operation,
+            "column": self.column,
+            "value": self.value
+        }
+
+
 class Model(JSONSerializable):
     _fields = None
 
