@@ -6,7 +6,7 @@ from flask import request
 from werkzeug.exceptions import BadRequest
 
 from pyboot.exception import NotFoundException, InvalidInputException, InvalidValueException, \
-    AccessDeniedException, DuplicateValueException, InvalidStateException, AuthFailedException, UnauthorizedException
+    AccessDeniedException, DuplicateValueException, InvalidStateException, AuthFailedException
 from pyboot.model import HttpResponse
 from pyboot.json import json_response
 
@@ -40,7 +40,7 @@ class Controller(Decorator):
                         return render_template(self.server_error_template, exception=e), 400
                     else:
                         return "Server error [500]: " + str(e)
-                except (AccessDeniedException, UnauthorizedException) as e:
+                except AccessDeniedException as e:
                     logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
                     if self.access_denied_template:
                         return render_template(self.access_denied_template, exception=e), 403
