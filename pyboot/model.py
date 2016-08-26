@@ -1,3 +1,4 @@
+from pyboot.page import Page
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import Date
@@ -5,7 +6,9 @@ from sqlalchemy import DateTime
 from sqlalchemy import Float
 from sqlalchemy import Integer
 from sqlalchemy import String
+from sqlalchemy import and_
 from sqlalchemy import inspect
+from sqlalchemy import or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import RelationshipProperty
@@ -234,11 +237,92 @@ class DatabaseModel(Model):
         if order_by is not None: query = query.order_by(order_by)
         return query
 
+    # filters= [
+    #     {"or": [
+    #         {op:"in", column:'column', value:'value'}},
+    #         {op:"equal", column:'column', value:'value'}},
+    #         {op:"range", column:'column', value:['start_value', 'end_value']}},
+    #         {op:"ilike", column:'column', value:'value'}}
+    #     ]},
+    #     {op:"in", column:'column', value:'value'}},
+    #     {op:"equal", column:'column', value:'value'}},
+    #     {op:"range", column:'column', value:['start_value', 'end_value']}},
+    #     {op:"ilike", column:'column', value:'value'}}
+    # ]
+
     @classmethod
-    def get_all(cls, db: Session, start: int = None, count: int = None, order_by=None, include: list = None) -> list:
-        query = cls._query(db.query(cls), start=start, count=count, order_by=order_by)
+    def get_all(cls, db: Session, filters: dict=None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
+        columns = inspect(cls).columns
+        query = db.query(cls)
         cls.join_tables(query, include)
+        query = cls.generate_filter_query(query, filters, columns)
+        query = cls._query(query, start=start, count=count, order_by=order_by)
         return query.all()
+
+    @classmethod
+    def get_page(cls, db: Session, filters: dict=None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
+        page = Page()
+        columns = inspect(cls).columns
+        query = db.query(cls)
+        cls.join_tables(query, include)
+        query = cls.generate_filter_query(query, filters, columns)
+        page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
+        page.total_count = query.count()
+        page.gen_page_data(start, count)
+        return page
+
+    @classmethod
+    def _generate_filter_query(cls, query, filters: dict, columns):
+        if not filters or isinstance(filters, list):
+            return query
+        or_filters_list = []
+        and_filters_list = []
+        for and_filter in filters:
+            if "or" in and_filter and and_filter["or"] and isinstance(and_filter["or"], list):
+                for or_filter in and_filter["or"]:
+                    or_operation = cls.__get_operation_query(or_filter, columns)
+                    if not query: continue
+                    if isinstance(or_operation, list):
+                        or_filters_list.extend(or_operation)
+                    else:
+                        or_filters_list.append(or_operation)
+            else:
+                and_operation = cls.__get_operation_query(and_filter, columns)
+                if not and_operation:
+                    continue
+                if isinstance(and_operation, list):
+                    and_filters_list.extend(and_operation)
+                else:
+                    and_filters_list.append(and_operation)
+        if and_filters_list and len(and_filters_list) > 0:
+            query = query.filter(and_(*and_filters_list))
+        if or_filters_list and len(or_filters_list) > 0:
+            query = query.filter(or_(*or_filters_list))
+        return query
+
+    @classmethod
+    def __get_operation_query(cls, input_filter, columns):
+        # filters_list = []
+        if input_filter:
+            return
+        operation = input_filter["op"] if "op" in input_filter else None
+        column_name = input_filter["column"] if "column" in input_filter else None
+        value = input_filter["value"] if "value" in input_filter else None
+
+        if not operation or not column_name or not value:
+            return
+        if operation == "in":
+            return columns[column_name].in_(value)
+        if operation == "equal":
+            return columns[column_name] == value
+        if operation == "range":
+            range_query = []
+            if isinstance(value, list):
+                if len(value) == 1 or len(value) == 2 and value[0]:
+                    range_query.append(columns[column_name] > value[0])
+                else:
+                    range_query.append(columns[column_name] < value[1])
+                return range_query
 
     @classmethod
     def get(cls, db: Session, id: int, include: list = None):
