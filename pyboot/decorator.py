@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest
 
 from pyboot.exception import NotFoundException, InvalidInputException, InvalidValueException, \
     AccessDeniedException, DuplicateValueException, InvalidStateException, AuthFailedException
-from pyboot.model import HttpResponse
+from pyboot.model_base import HttpResponse
 from pyboot.json import json_response
 
 

@@ -1,4 +1,4 @@
-from pyboot.json import JSONSerializable
+from pyboot.model_base import JSONSerializable
 
 
 class Page(JSONSerializable):

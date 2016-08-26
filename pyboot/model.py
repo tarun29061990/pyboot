@@ -1,5 +1,5 @@
-from pyboot.page import Page
 from sqlalchemy import Boolean
+from pyboot.page import Page
 from sqlalchemy import Column
 from sqlalchemy import Date
 from sqlalchemy import DateTime
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Query
 from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm import Session
 
+from pyboot.model_base import JSONSerializable
 from pyboot.util import Parser, DateTimeUtil, Validator, DateUtil
 
 TYPE_INT = "int"
@@ -26,26 +27,6 @@ TYPE_ENUM = "enum"
 TYPE_LIST = "list"
 TYPE_OBJ = "obj"
 TYPE_UNKNOWN = "unknown"
-
-
-class JSONSerializable(object):
-    def to_json_dict(self, include: list = None) -> dict:
-        return {}
-
-    def from_json_dict(self, json_dict: dict):
-        return self
-
-
-class HttpResponse(JSONSerializable):
-    def __init__(self, code: int = 0, message: str = "Success"):
-        self.code = code
-        self.message = message
-
-    def to_json_dict(self, include: list = None) -> dict:
-        json_dict = super().to_json_dict(include)
-        json_dict["code"] = self.code
-        json_dict["message"] = self.message
-        return json_dict
 
 
 class Model(JSONSerializable):
@@ -255,7 +236,7 @@ class DatabaseModel(Model):
         columns = inspect(cls).columns
         query = db.query(cls)
         cls.join_tables(query, include)
-        query = cls.generate_filter_query(query, filters, columns)
+        query = cls._generate_filter_query(query, filters, columns)
         query = cls._query(query, start=start, count=count, order_by=order_by)
         return query.all()
 
@@ -265,7 +246,7 @@ class DatabaseModel(Model):
         columns = inspect(cls).columns
         query = db.query(cls)
         cls.join_tables(query, include)
-        query = cls.generate_filter_query(query, filters, columns)
+        query = cls._generate_filter_query(query, filters, columns)
         page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
         page.total_count = query.count()
         page.gen_page_data(start, count)
@@ -273,7 +254,7 @@ class DatabaseModel(Model):
 
     @classmethod
     def _generate_filter_query(cls, query, filters: dict, columns):
-        if not filters or isinstance(filters, list):
+        if not filters or not isinstance(filters, list):
             return query
         or_filters_list = []
         and_filters_list = []
@@ -281,14 +262,14 @@ class DatabaseModel(Model):
             if "or" in and_filter and and_filter["or"] and isinstance(and_filter["or"], list):
                 for or_filter in and_filter["or"]:
                     or_operation = cls.__get_operation_query(or_filter, columns)
-                    if not query: continue
+                    if or_operation is None: continue
                     if isinstance(or_operation, list):
                         or_filters_list.extend(or_operation)
                     else:
                         or_filters_list.append(or_operation)
             else:
                 and_operation = cls.__get_operation_query(and_filter, columns)
-                if not and_operation:
+                if and_operation is None:
                     continue
                 if isinstance(and_operation, list):
                     and_filters_list.extend(and_operation)
@@ -303,7 +284,7 @@ class DatabaseModel(Model):
     @classmethod
     def __get_operation_query(cls, input_filter, columns):
         # filters_list = []
-        if input_filter:
+        if not input_filter:
             return
         operation = input_filter["op"] if "op" in input_filter else None
         column_name = input_filter["column"] if "column" in input_filter else None
