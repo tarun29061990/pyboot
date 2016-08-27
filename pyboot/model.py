@@ -127,7 +127,7 @@ class Model(JSONSerializable):
 
     def _include_obj_list(self, json_dict: dict, include: list, name: str):
         json_list = []
-        obj_list = getattr(self, name, None) if name in include else None
+        obj_list = getattr(self, name, None) if include and name in include else None
         if obj_list and isinstance(obj_list, list):
             for obj in obj_list:
                 if isinstance(obj, JSONSerializable):
@@ -140,7 +140,7 @@ class Model(JSONSerializable):
         if not include: include = []
         field_name = name + "_id"
 
-        sub_obj = getattr(self, name, None) if name in include else None
+        sub_obj = getattr(self, name, None) if include and name in include else None
         value = getattr(self, field_name, None) if field_name in self.__dict__ else None
         if sub_obj:
             if isinstance(sub_obj, JSONSerializable): json_dict[name] = sub_obj.to_json_dict()

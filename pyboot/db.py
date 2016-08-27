@@ -99,21 +99,23 @@ class DatabaseModel(Model):
 
     @classmethod
     def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
+        query = cls._get_all_query(db, filters=filters, start=start, count=count, order_by=order_by, include=include)
+        return query.all()
+
+    @classmethod
+    def _get_all_query(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None):
         columns = inspect(cls).columns
         query = db.query(cls)
         query = cls.join_tables(query, include)
         query = cls._generate_filter_query(query, filters, columns)
         query = cls._query(query, start=start, count=count, order_by=order_by)
-        return query.all()
+        return query
 
     @classmethod
     def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
         page = Page()
-        columns = inspect(cls).columns
-        query = db.query(cls)
-        query = cls.join_tables(query, include)
-        query = cls._generate_filter_query(query, filters, columns)
-        page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
+        query = cls._get_all_query(db, filters=filters, start=start, count=count, order_by=order_by, include=include)
+        page.items = query.all()
         page.total_count = query.count()
         page.gen_page_data(start, count)
         return page
