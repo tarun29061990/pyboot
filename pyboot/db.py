@@ -99,23 +99,23 @@ class DatabaseModel(Model):
 
     @classmethod
     def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
-        query = cls._get_all_query(db, filters=filters, start=start, count=count, order_by=order_by, include=include)
+        query = cls._get_all_query(db, filters=filters, include=include)
+        query = cls._query(query, start=start, count=count, order_by=order_by)
         return query.all()
 
     @classmethod
-    def _get_all_query(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None):
+    def _get_all_query(cls, db: Session, filters: dict = None, include: list = None):
         columns = inspect(cls).columns
         query = db.query(cls)
         query = cls.join_tables(query, include)
         query = cls._generate_filter_query(query, filters, columns)
-        query = cls._query(query, start=start, count=count, order_by=order_by)
         return query
 
     @classmethod
     def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
         page = Page()
-        query = cls._get_all_query(db, filters=filters, start=start, count=count, order_by=order_by, include=include)
-        page.items = query.all()
+        query = cls._get_all_query(db, filters=filters, include=include)
+        page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
         page.total_count = query.count()
         page.gen_page_data(start, count)
         return page
@@ -157,7 +157,7 @@ class DatabaseModel(Model):
         operation = input_filter["op"] if "op" in input_filter else None
         column_name = input_filter["column"] if "column" in input_filter else None
         value = input_filter["value"] if "value" in input_filter else None
-
+        if column_name not in columns: return
         if not operation or not column_name or not value:
             return
         if operation == FilterOperationEnum.IN.value:
