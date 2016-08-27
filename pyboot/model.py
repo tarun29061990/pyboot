@@ -131,9 +131,9 @@ class Model(JSONSerializable):
         if obj_list and isinstance(obj_list, list):
             for obj in obj_list:
                 if isinstance(obj, JSONSerializable):
-                    obj_list.append(obj.to_json_dict())
+                    json_list.append(obj.to_json_dict())
                 else:
-                    obj_list.append(obj)
+                    json_list.append(obj)
         json_dict[name] = json_list
 
     def _include_obj(self, json_dict: dict, include: list, name: str):
