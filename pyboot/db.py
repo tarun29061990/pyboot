@@ -74,7 +74,7 @@ class DatabaseModel(Model):
     def from_dict(self, obj_dict: dict):
         if not obj_dict: return
         if "id" in obj_dict: self.id = obj_dict["id"]
-        super().to_dict()
+        super().from_dict(obj_dict)
         return self
 
     @classmethod
