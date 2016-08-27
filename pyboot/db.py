@@ -101,7 +101,7 @@ class DatabaseModel(Model):
     def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
         columns = inspect(cls).columns
         query = db.query(cls)
-        cls.join_tables(query, include)
+        query = cls.join_tables(query, include)
         query = cls._generate_filter_query(query, filters, columns)
         query = cls._query(query, start=start, count=count, order_by=order_by)
         return query.all()
@@ -111,7 +111,7 @@ class DatabaseModel(Model):
         page = Page()
         columns = inspect(cls).columns
         query = db.query(cls)
-        cls.join_tables(query, include)
+        query = cls.join_tables(query, include)
         query = cls._generate_filter_query(query, filters, columns)
         page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
         page.total_count = query.count()
