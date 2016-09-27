@@ -79,9 +79,19 @@ class DatabaseModel(Model):
 
     @classmethod
     def _query(cls, query: Query, start: int = None, count: int = None, order_by=None) -> Query:
+        if order_by is not None:
+            order_by_query = []
+            columns = inspect(cls).columns
+            for order_by_element in order_by:
+                for key in order_by_element:
+                    if key not in columns: continue
+                    if order_by_element[key] == "asc":
+                        order_by_query.append(columns[key].asc())
+                    else:
+                        order_by_query.append(columns[key].desc())
+            query = query.order_by(*order_by_query)
         if start: query = query.offset(start)
         if count: query = query.limit(count)
-        if order_by is not None: query = query.order_by(order_by)
         return query
 
     # filters= [
