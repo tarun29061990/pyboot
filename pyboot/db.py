@@ -110,7 +110,7 @@ class DatabaseModel(Model):
     @classmethod
     def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
         query = cls._get_all_query(db, filters=filters, include=include)
-        query = cls._query(query, start=start, count=count, order_by=order_by)
+        query = cls._query(query, start=start, count=count + 1, order_by=order_by)
         return query.all()
 
     @classmethod
@@ -125,7 +125,7 @@ class DatabaseModel(Model):
     def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
         page = Page()
         query = cls._get_all_query(db, filters=filters, include=include)
-        page.items = cls._query(query, start=start, count=count, order_by=order_by).all()
+        page.items = cls._query(query, start=start, count=count + 1, order_by=order_by).all()
         page.total_count = query.count()
         page.gen_page_data(start, count)
         return page
