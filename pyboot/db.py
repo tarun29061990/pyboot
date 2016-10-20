@@ -168,7 +168,7 @@ class DatabaseModel(Model):
         column_name = input_filter["column"] if "column" in input_filter else None
         value = input_filter["value"] if "value" in input_filter else None
         if column_name not in columns: return
-        if not operation or not column_name or value is not None:
+        if not operation or not column_name or value is None:
             return
         if operation == FilterOperationEnum.IN.value:
             return columns[column_name].in_(value)
