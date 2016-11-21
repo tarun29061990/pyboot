@@ -4,6 +4,7 @@ from pyboot.util import Parser, DateTimeUtil, Validator, DateUtil
 TYPE_INT = "int"
 TYPE_FLOAT = "float"
 TYPE_BOOL = "bool"
+TYPE_DECIMAL = "decimal"
 TYPE_STR = "str"
 TYPE_DATETIME = "datetime"
 TYPE_DATE = "date"
@@ -39,7 +40,7 @@ class Model(JSONSerializable):
             obj_dict[name] = Parser.str(value)
         elif type == TYPE_INT:
             obj_dict[name] = Parser.int(value)
-        elif type == TYPE_FLOAT:
+        elif type in [TYPE_FLOAT, TYPE_DECIMAL]:
             obj_dict[name] = Parser.float(value)
         elif type == TYPE_BOOL:
             obj_dict[name] = Parser.bool(value)
@@ -65,7 +66,7 @@ class Model(JSONSerializable):
             setattr(self, name, Parser.str(value))
         elif type == TYPE_INT:
             setattr(self, name, Parser.int(value))
-        elif type == TYPE_FLOAT:
+        elif type in [TYPE_FLOAT, TYPE_DECIMAL]:
             setattr(self, name, Parser.float(value))
         elif type == TYPE_BOOL:
             setattr(self, name, Parser.bool(value))
