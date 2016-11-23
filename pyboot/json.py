@@ -1,6 +1,7 @@
 import datetime
 import json
 
+import decimal
 from flask import Response
 
 from pyboot.util import DateTimeUtil, DateUtil, TimeUtil
@@ -37,6 +38,8 @@ def __serialize_object(obj):
         return TimeUtil.time_to_iso(obj)
     elif issubclass(obj.__class__, JSONSerializable):
         return obj.to_json_dict()
+    elif issubclass(obj.__class__, decimal.Decimal):
+        return float(obj)
     else:
         return iter(obj)
 
