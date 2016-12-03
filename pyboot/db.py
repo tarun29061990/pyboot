@@ -4,7 +4,8 @@ from sqlalchemy import Column, Integer, inspect, String, Float, Boolean, DateTim
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import RelationshipProperty, Query, Session
 
-from pyboot.model import Model, TYPE_STR, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_DATETIME, TYPE_DATE, TYPE_OBJ, TYPE_UNKNOWN, TYPE_LIST
+from pyboot.model import Model, TYPE_STR, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_DATETIME, TYPE_DATE, TYPE_OBJ, \
+    TYPE_UNKNOWN, TYPE_LIST
 from pyboot.page import Page
 
 
@@ -32,39 +33,39 @@ class DatabaseModel(Model):
     id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)  # type: int
 
     @classmethod
-    def _get_fields(cls):
-        if cls._fields: return cls._fields
+    def _get_structure(cls):
+        if cls._structure: return cls._structure
 
         columns = inspect(cls).columns
         if not columns: return None
-        cls._fields = {}
+        cls._structure = {}
         for column in columns:
             type = column.type
             if isinstance(type, String):
-                cls._fields[column.key] = TYPE_STR
+                cls._structure[column.key] = TYPE_STR
             elif isinstance(type, Integer):
-                cls._fields[column.key] = TYPE_INT
+                cls._structure[column.key] = TYPE_INT
             elif isinstance(type, Float):
-                cls._fields[column.key] = TYPE_FLOAT
+                cls._structure[column.key] = TYPE_FLOAT
             elif isinstance(type, Boolean):
-                cls._fields[column.key] = TYPE_BOOL
+                cls._structure[column.key] = TYPE_BOOL
             elif isinstance(type, DateTime):
-                cls._fields[column.key] = TYPE_DATETIME
+                cls._structure[column.key] = TYPE_DATETIME
             elif isinstance(type, Date):
-                cls._fields[column.key] = TYPE_DATE
+                cls._structure[column.key] = TYPE_DATE
             elif isinstance(type, RelationshipProperty):
-                cls._fields[column.key] = TYPE_OBJ
+                cls._structure[column.key] = TYPE_OBJ
             else:
-                cls._fields[column.key] = TYPE_UNKNOWN
+                cls._structure[column.key] = TYPE_UNKNOWN
 
         relationships = inspect(cls).relationships
         for relation in relationships:
             if relation.uselist:
-                cls._fields[relation.key] = TYPE_LIST
+                cls._structure[relation.key] = TYPE_LIST
             else:
-                cls._fields[relation.key] = TYPE_OBJ
+                cls._structure[relation.key] = TYPE_OBJ
 
-        return cls._fields
+        return cls._structure
 
     def to_dict(self):
         obj_dict = super().to_dict()
@@ -108,7 +109,8 @@ class DatabaseModel(Model):
     # ]
 
     @classmethod
-    def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
+    def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
+                include: list = None) -> list:
         query = cls._get_all_query(db, filters=filters, include=include)
         query = cls._query(query, start=start, count=count + 1, order_by=order_by)
         return query.all()
@@ -122,7 +124,8 @@ class DatabaseModel(Model):
         return query
 
     @classmethod
-    def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None, include: list = None) -> list:
+    def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
+                 include: list = None) -> list:
         page = Page()
         query = cls._get_all_query(db, filters=filters, include=include)
         page.items = cls._query(query, start=start, count=count + 1, order_by=order_by).all()

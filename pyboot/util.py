@@ -348,3 +348,13 @@ class Validator:
         if not isinstance(value_dict, dict):
             raise InvalidValueException("Value is not a dict instance '%s'" % value_dict)
         return value_dict
+
+
+class ClassUtil:
+    @staticmethod
+    def get_class_by_name(path):
+        from importlib import import_module
+        module_path, _, class_name = path.rpartition('.')
+        mod = import_module(module_path)
+        klass = getattr(mod, class_name)
+        return klass

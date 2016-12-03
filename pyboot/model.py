@@ -27,11 +27,13 @@ class HttpResponse(JSONSerializable):
 
 
 class Model(JSONSerializable):
-    _fields = None
+    _structure = None
+    _required = None
+    _defaults = None
 
     @classmethod
-    def _get_fields(cls):
-        return cls._fields
+    def _get_structure(cls):
+        return cls._structure
 
     def _to_dict_field(self, obj_dict, name: str, type: str = None):
         if not name or name not in self.__dict__: return
@@ -87,28 +89,28 @@ class Model(JSONSerializable):
 
     def to_dict(self):
         obj_dict = {}
-        fields = self.__class__._get_fields()
-        if not fields: return obj_dict
-        for field_name in fields.keys():
-            self._to_dict_field(obj_dict, field_name, fields[field_name])
+        structure = self.__class__._get_structure()
+        if not structure: return obj_dict
+        for field_name in structure.keys():
+            self._to_dict_field(obj_dict, field_name, structure[field_name])
         return obj_dict
 
     def from_dict(self, obj_dict: dict):
         if not obj_dict: return
 
-        fields = self.__class__._get_fields()
-        if not fields: return self
-        for field_name in fields:
-            self._from_dict_field(obj_dict, field_name, fields[field_name])
+        structure = self.__class__._get_structure()
+        if not structure: return self
+        for field_name in structure:
+            self._from_dict_field(obj_dict, field_name, structure[field_name])
         return self
 
     def to_json_dict(self, include: list = None) -> dict:
         json_dict = self.to_dict()
 
-        fields = self.__class__._get_fields()
-        if not fields: return json_dict
-        for field_name in fields.keys():
-            type = fields[field_name]
+        structure = self.__class__._get_structure()
+        if not structure: return json_dict
+        for field_name in structure.keys():
+            type = structure[field_name]
             if type == TYPE_OBJ:
                 self._include_obj(json_dict, include, field_name)
             elif type == TYPE_LIST:
@@ -118,10 +120,10 @@ class Model(JSONSerializable):
     def from_json_dict(self, json_dict: dict):
         self.from_dict(json_dict)
 
-        fields = self.__class__._get_fields()
-        if not fields: return self
-        for field_name in fields:
-            type = fields[field_name]
+        structure = self.__class__._get_structure()
+        if not structure: return self
+        for field_name in structure:
+            type = structure[field_name]
             if type == TYPE_OBJ:
                 self._exclude_obj(json_dict, field_name)
         return self
@@ -156,6 +158,4 @@ class Model(JSONSerializable):
         if not json_dict or name not in json_dict: return
         obj = json_dict[name]
         field_name = name + "_id"
-        if "id" in obj and field_name in self.__class__._fields: setattr(self, field_name, obj["id"])
-
-
+        if "id" in obj and field_name in self.__class__._structure: setattr(self, field_name, obj["id"])
