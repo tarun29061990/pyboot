@@ -1,11 +1,12 @@
 from enum import Enum
 
+import datetime
 from sqlalchemy import Column, Integer, inspect, String, Float, Boolean, DateTime, Date, and_, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import RelationshipProperty, Query, Session
 
-from pyboot.model import Model, TYPE_STR, TYPE_INT, TYPE_FLOAT, TYPE_BOOL, TYPE_DATETIME, TYPE_DATE, TYPE_OBJ, \
-    TYPE_UNKNOWN, TYPE_LIST
+from pyboot.core import JSONSerializable
+from pyboot.model import Model
 from pyboot.page import Page
 
 
@@ -42,41 +43,97 @@ class DatabaseModel(Model):
         for column in columns:
             type = column.type
             if isinstance(type, String):
-                cls._structure[column.key] = TYPE_STR
+                cls._structure[column.key] = str
             elif isinstance(type, Integer):
-                cls._structure[column.key] = TYPE_INT
+                cls._structure[column.key] = int
             elif isinstance(type, Float):
-                cls._structure[column.key] = TYPE_FLOAT
+                cls._structure[column.key] = float
             elif isinstance(type, Boolean):
-                cls._structure[column.key] = TYPE_BOOL
+                cls._structure[column.key] = bool
             elif isinstance(type, DateTime):
-                cls._structure[column.key] = TYPE_DATETIME
+                cls._structure[column.key] = datetime.datetime
             elif isinstance(type, Date):
-                cls._structure[column.key] = TYPE_DATE
+                cls._structure[column.key] = datetime.date
             elif isinstance(type, RelationshipProperty):
-                cls._structure[column.key] = TYPE_OBJ
+                cls._structure[column.key] = object
             else:
-                cls._structure[column.key] = TYPE_UNKNOWN
+                cls._structure[column.key] = None
 
         relationships = inspect(cls).relationships
         for relation in relationships:
             if relation.uselist:
-                cls._structure[relation.key] = TYPE_LIST
+                cls._structure[relation.key] = list
             else:
-                cls._structure[relation.key] = TYPE_OBJ
+                cls._structure[relation.key] = object
 
         return cls._structure
 
-    def to_dict(self):
-        obj_dict = super().to_dict()
-        if self.id: obj_dict["id"] = self.id
-        return obj_dict
+    # def to_dict(self):
+    #     obj_dict = super().to_dict()
+    #     if self.id: obj_dict["id"] = self.id
+    #     return obj_dict
+    #
+    # def from_dict(self, obj_dict: dict):
+    #     if not obj_dict: return
+    #     if "id" in obj_dict: self.id = obj_dict["id"]
+    #     super().from_dict(obj_dict)
+    #     return self
 
-    def from_dict(self, obj_dict: dict):
-        if not obj_dict: return
-        if "id" in obj_dict: self.id = obj_dict["id"]
-        super().from_dict(obj_dict)
+    def to_json_dict(self, include: list = None) -> dict:
+        json_dict = self.to_dict()
+
+        structure = self.__class__._get_structure()
+        if not structure: return json_dict
+        for field_name in structure.keys():
+            obj_type = structure[field_name]
+            if issubclass(obj_type, object):
+                self._include_obj(json_dict, include, field_name)
+            elif obj_type is list:
+                self._include_obj_list(json_dict, include, field_name)
+        return json_dict
+
+    def from_json_dict(self, json_dict: dict):
+        self.from_dict(json_dict)
+
+        structure = self.__class__._get_structure()
+        if not structure: return self
+        for field_name in structure:
+            obj_type = structure[field_name]
+            if issubclass(obj_type, object):
+                self._exclude_obj(json_dict, field_name)
         return self
+
+    def _include_obj_list(self, json_dict: dict, include: list, name: str):
+        json_list = []
+        obj_list = getattr(self, name, None) if include and name in include else None
+        if obj_list and isinstance(obj_list, list):
+            for obj in obj_list:
+                if isinstance(obj, JSONSerializable):
+                    json_list.append(obj.to_json_dict())
+                else:
+                    json_list.append(obj)
+        json_dict[name] = json_list
+
+    def _include_obj(self, json_dict: dict, include: list, name: str):
+        if not include: include = []
+        field_name = name + "_id"
+
+        sub_obj = getattr(self, name, None) if include and name in include else None
+        value = getattr(self, field_name, None) if field_name in self.__dict__ else None
+        if sub_obj:
+            if isinstance(sub_obj, JSONSerializable): json_dict[name] = sub_obj.to_json_dict()
+        elif value:
+            json_dict[name] = {"id": value}
+        elif name in include:
+            json_dict[name] = None
+
+        if field_name in json_dict: del json_dict[field_name]
+
+    def _exclude_obj(self, json_dict: dict, name: str):
+        if not json_dict or name not in json_dict: return
+        obj = json_dict[name]
+        field_name = name + "_id"
+        if "id" in obj and field_name in self.__class__._structure: setattr(self, field_name, obj["id"])
 
     @classmethod
     def _query(cls, query: Query, start: int = None, count: int = None, order_by=None) -> Query:
@@ -94,19 +151,6 @@ class DatabaseModel(Model):
         if start: query = query.offset(start)
         if count: query = query.limit(count)
         return query
-
-    # filters= [
-    #     {"or": [
-    #         {op:"in", column:'column', value:'value'}},
-    #         {op:"equal", column:'column', value:'value'}},
-    #         {op:"range", column:'column', value:['start_value', 'end_value']}},
-    #         {op:"ilike", column:'column', value:'value'}}
-    #     ]},
-    #     {op:"in", column:'column', value:'value'}},
-    #     {op:"equal", column:'column', value:'value'}},
-    #     {op:"range", column:'column', value:['start_value', 'end_value']}},
-    #     {op:"ilike", column:'column', value:'value'}}
-    # ]
 
     @classmethod
     def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,

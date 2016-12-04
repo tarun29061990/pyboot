@@ -1,17 +1,22 @@
+import decimal
+
+import datetime
+
 from pyboot.core import JSONSerializable
 from pyboot.util import Parser, DateTimeUtil, Validator, DateUtil
 
-TYPE_INT = "int"
-TYPE_FLOAT = "float"
-TYPE_BOOL = "bool"
-TYPE_DECIMAL = "decimal"
-TYPE_STR = "str"
-TYPE_DATETIME = "datetime"
-TYPE_DATE = "date"
-TYPE_ENUM = "enum"
-TYPE_LIST = "list"
-TYPE_OBJ = "obj"
-TYPE_UNKNOWN = "unknown"
+
+# TYPE_INT = "int"
+# TYPE_FLOAT = "float"
+# TYPE_BOOL = "bool"
+# TYPE_DECIMAL = "decimal"
+# TYPE_STR = "str"
+# TYPE_DATETIME = "datetime"
+# TYPE_DATE = "date"
+# TYPE_ENUM = "enum"
+# TYPE_LIST = "list"
+# TYPE_OBJ = "obj"
+# TYPE_UNKNOWN = "unknown"
 
 
 class HttpResponse(JSONSerializable):
@@ -28,61 +33,62 @@ class HttpResponse(JSONSerializable):
 
 class Model(JSONSerializable):
     _structure = None
-    _required = None
-    _defaults = None
+
+    # _required = None
+    # _defaults = None
 
     @classmethod
     def _get_structure(cls):
         return cls._structure
 
-    def _to_dict_field(self, obj_dict, name: str, type: str = None):
+    def _to_dict_field(self, obj_dict, name: str, obj_type=None):
         if not name or name not in self.__dict__: return
         value = getattr(self, name)
-        if type == TYPE_STR:
+        if obj_type is str:
             obj_dict[name] = Parser.str(value)
-        elif type == TYPE_INT:
+        elif obj_type == int:
             obj_dict[name] = Parser.int(value)
-        elif type in [TYPE_FLOAT, TYPE_DECIMAL]:
+        elif obj_type is float or obj_type is decimal.Decimal:
             obj_dict[name] = Parser.float(value)
-        elif type == TYPE_BOOL:
+        elif obj_type is bool:
             obj_dict[name] = Parser.bool(value)
-        elif type == TYPE_DATETIME:
+        elif obj_type is datetime.datetime:
             if isinstance(value, str):
                 obj_dict[name] = DateTimeUtil.iso_to_dt_local(value)
             else:
                 obj_dict[name] = Validator.datetime(value)
-        elif type == TYPE_DATE:
+        elif obj_type is datetime.date:
             if isinstance(value, str):
                 obj_dict[name] = DateUtil.iso_to_date(value)
             else:
                 obj_dict[name] = Validator.date(value)
-        elif type == TYPE_UNKNOWN:
+        elif obj_type is None:
             obj_dict[name] = value
         else:
             obj_dict[name] = value
 
-    def _from_dict_field(self, obj_dict: dict, name: str, type: str = None):
+    def _from_dict_field(self, obj_dict: dict, name: str, obj_type=None):
         if not name or not obj_dict or name not in obj_dict: return
         value = obj_dict.get(name)
-        if type == TYPE_STR:
+        if obj_type is str:
             setattr(self, name, Parser.str(value))
-        elif type == TYPE_INT:
+        elif obj_type is int:
             setattr(self, name, Parser.int(value))
-        elif type in [TYPE_FLOAT, TYPE_DECIMAL]:
+        elif obj_type is float or obj_type is decimal.Decimal:
             setattr(self, name, Parser.float(value))
-        elif type == TYPE_BOOL:
+        elif obj_type is bool:
             setattr(self, name, Parser.bool(value))
-        elif type == TYPE_DATETIME:
+        elif obj_type is datetime.datetime:
             if isinstance(value, str):
                 setattr(self, name, DateTimeUtil.iso_to_dt_local(value))
             else:
                 setattr(self, name, Validator.datetime(value))
-        elif type == TYPE_DATE:
+        elif obj_type is datetime.date:
             if isinstance(value, str):
                 setattr(self, name, DateUtil.iso_to_date(value))
             else:
                 setattr(self, name, Validator.date(value))
-        elif type == TYPE_UNKNOWN:
+        elif obj_type is None:
             setattr(self, name, value)
         else:
             setattr(self, name, value)
@@ -110,10 +116,10 @@ class Model(JSONSerializable):
         structure = self.__class__._get_structure()
         if not structure: return json_dict
         for field_name in structure.keys():
-            type = structure[field_name]
-            if type == TYPE_OBJ:
+            obj_type = structure[field_name]
+            if issubclass(obj_type, object):
                 self._include_obj(json_dict, include, field_name)
-            elif type == TYPE_LIST:
+            elif obj_type is list:
                 self._include_obj_list(json_dict, include, field_name)
         return json_dict
 
@@ -123,8 +129,8 @@ class Model(JSONSerializable):
         structure = self.__class__._get_structure()
         if not structure: return self
         for field_name in structure:
-            type = structure[field_name]
-            if type == TYPE_OBJ:
+            obj_type = structure[field_name]
+            if issubclass(obj_type, object):
                 self._exclude_obj(json_dict, field_name)
         return self
 
