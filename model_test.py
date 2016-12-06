@@ -24,4 +24,4 @@ class Person(DBModelBase):
 
 if __name__ == "__main__":
     person = Person()
-    print(person.to_json_dict())
+    print(person.to_dict_deep())

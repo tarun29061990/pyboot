@@ -1,8 +1,8 @@
 import datetime
+import decimal
 import os
 import random
 import tempfile
-
 import iso8601
 import pytz
 import tzlocal
@@ -56,7 +56,8 @@ class DateUtil(object):
 
     @staticmethod
     def iso_to_date(date_str):
-        return iso8601.parse_date(date_str)
+        dt = iso8601.parse_date(date_str)
+        if dt: return dt.date()
 
 
 class TimeUtil(object):
@@ -348,6 +349,34 @@ class Validator:
         if not isinstance(value_dict, dict):
             raise InvalidValueException("Value is not a dict instance '%s'" % value_dict)
         return value_dict
+
+
+class TypeUtil:
+    @staticmethod
+    def cast(value, value_type=None):
+        if type(value_type) is not type:
+            raise InvalidValueException("Type of value_type must be 'type'")
+
+        if value_type is str:
+            return Parser.str(value)
+        elif value_type is int:
+            return Parser.int(value)
+        elif value_type is float or value_type is decimal.Decimal:
+            return Parser.float(value)
+        elif value_type is bool:
+            return Parser.bool(value)
+        elif value_type is datetime.datetime:
+            if isinstance(value, str):
+                return DateTimeUtil.iso_to_dt_local(value)
+            else:
+                return Validator.datetime(value)
+        elif value_type is datetime.date:
+            if isinstance(value, str):
+                return DateUtil.iso_to_date(value)
+            else:
+                return Validator.date(value)
+        else:
+            return value
 
 
 class ClassUtil:

@@ -24,13 +24,16 @@ class Client(DBModelBase):
 
     name = Column(String)
     person_id = Column(Integer, ForeignKey(Person.id))
-
     person = relationship(Person)
 
 
 class ModelTest(TestCase):
     def testRelationship(self):
         client = Client()
+        client.id = 10
         client.name = "Rajeev"
         client.person_id = 1
-        print(client.to_json_dict())
+        client.person = Person()
+        client.person.id = 1
+        client.person.name = "Sharma"
+        print(client.to_dict_deep())
