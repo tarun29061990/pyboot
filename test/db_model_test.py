@@ -3,7 +3,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath("../"))
 
 from unittest import TestCase
-
+from pyboot.json import load_json
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -28,12 +28,22 @@ class Client(DBModelBase):
 
 
 class ModelTest(TestCase):
-    def testRelationship(self):
+    def test_to_dict_deep(self):
         client = Client()
         client.id = 10
         client.name = "Rajeev"
         client.person_id = 1
-        client.person = Person()
-        client.person.id = 1
-        client.person.name = "Sharma"
+
+        person = Person()
+        person.id = 1
+        person.name = "Sharma"
+
+        client.person = person
+        print(client.to_dict_deep())
+
+    def test_from_dict_deep(self):
+        obj_dict = load_json('{"person_id": 1, "name": "Rajeev", "id": 10, "person": {"name": "Sharma", "id": 1}}')
+
+        client = Client().from_dict_deep(obj_dict)
+
         print(client.to_dict_deep())

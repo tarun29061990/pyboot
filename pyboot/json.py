@@ -63,9 +63,9 @@ def __to_json_dict(obj):
         return TypeUtil.cast(obj, type(obj))
 
 
-def dump_json(obj):
+def dump_json(obj) -> str:
     return json.dumps(obj, default=__to_json_dict)
 
 
-def load_json(obj):
-    return json.loads(obj)
+def load_json(obj_str: str):
+    return json.loads(obj_str)

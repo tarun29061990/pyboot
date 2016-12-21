@@ -33,6 +33,9 @@ class FilterOperation:
 class DatabaseModel(Model):
     id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)  # type: int
 
+    def __init__(self):
+        self.__obj_always = False
+
     @classmethod
     def _get_structure(cls):
         if cls._structure: return cls._structure
@@ -79,31 +82,44 @@ class DatabaseModel(Model):
         super().from_dict(obj_dict)
         return self
 
-    # def to_dict_deep(self) -> dict:
-    #     obj_dict = self.to_dict()
-    #
-    #     structure = self.__class__._get_structure()
-    #     if not structure: return obj_dict
-    #     for field_name in structure.keys():
-    #         obj_type = structure[field_name]
-    #         if issubclass(obj_type, Model):
-    #             self._include_obj(obj_dict, field_name)
-    #         elif obj_type is list:
-    #             self._include_obj_list(obj_dict, field_name)
-    #     return obj_dict
-    #
-    # def from_dict_deep(self, obj_dict: dict):
-    #     self.from_dict(obj_dict)
-    #
-    #     structure = self.__class__._get_structure()
-    #     if not structure: return self
-    #     for field_name in structure:
-    #         obj_type = structure[field_name]
-    #         if issubclass(obj_type, Model):
-    #             self._exclude_obj(obj_dict, field_name)
-    #     return self
-    #
+    def to_dict_deep(self, obj_always: bool = False) -> dict:
+        self.__obj_always = obj_always
+        return super().to_dict_deep()
+
+        # if not obj_always:
+        #     return super().to_dict_deep()
+        #
+        # obj_dict = self.to_dict()
+        # structure = self.__class__._get_structure()
+        # if not structure: return obj_dict
+        # for field_name in structure.keys():
+        #     obj_type = structure[field_name]
+        #     if issubclass(obj_type, Model):
+        #         self._include_obj(obj_dict, field_name)
+        #     elif obj_type is list:
+        #         self._include_obj_list(obj_dict, field_name)
+        # return obj_dict
+
+    def from_dict_deep(self, obj_dict: dict, obj_always: bool = False):
+        self.__obj_always = obj_always
+        return super().from_dict_deep(obj_dict)
+
+        # if not obj_always:
+        #     return super().from_dict_deep(obj_dict)
+        #
+        # self.from_dict(obj_dict)
+        # structure = self.__class__._get_structure()
+        # if not structure: return self
+        # for field_name in structure:
+        #     obj_type = structure[field_name]
+        #     if issubclass(obj_type, Model):
+        #         self._exclude_obj(obj_dict, field_name)
+        # return self
+
     # def _include_obj_list(self, obj_dict: dict, name: str):
+    #     if not self.__obj_always:
+    #         return super()._include_obj_list(obj_dict, name)
+    #
     #     json_list = []
     #     obj_list = getattr(self, name, None)
     #     if obj_list and isinstance(obj_list, list):
@@ -113,8 +129,11 @@ class DatabaseModel(Model):
     #             else:
     #                 json_list.append(obj)
     #     obj_dict[name] = json_list
-    #
+
     # def _include_obj(self, obj_dict: dict, name: str):
+    #     if not self.__obj_always:
+    #         return super()._include_obj(obj_dict, name)
+    #
     #     field_name = name + "_id"
     #
     #     sub_obj = getattr(self, name, None)
@@ -127,6 +146,9 @@ class DatabaseModel(Model):
     #     if field_name in obj_dict: del obj_dict[field_name]
     #
     # def _exclude_obj(self, obj_dict: dict, name: str):
+    #     # if not self.obj_always:
+    #     #     return super()._exclude_obj(obj_dict, name)
+    #
     #     if not obj_dict or name not in obj_dict: return
     #     obj = obj_dict[name]
     #     field_name = name + "_id"
@@ -166,7 +188,7 @@ class DatabaseModel(Model):
 
     @classmethod
     def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
-                 include: list = None) -> list:
+                 include: list = None) -> Page:
         page = Page()
         query = cls._get_all_query(db, filters=filters, include=include)
         page.items = cls._query(query, start=start, count=count + 1, order_by=order_by).all()
