@@ -11,6 +11,50 @@ from pyboot.model import HttpResponse
 from pyboot.json import json_response
 
 
+def reponse_handler():
+    def decorator(f):
+        @wraps(f)
+        def response_handler(*args, **kwargs):
+            if request.path.startswith("/v1/") or request.path.startswith("/v2/"):
+                try:
+                    return f(*args, **kwargs)
+                except (BadRequest, InvalidInputException, InvalidValueException) as e:
+                    logging.warning("Bad request [%s %s]: %s" % (request.method, request.url, e))
+                    return json_response(HttpResponse(code=400, message=str(e))), 400
+                except NotFoundException as e:
+                    logging.warning("Not found [%s %s]: %s" % (request.method, request.url, e))
+                    return json_response(HttpResponse(code=404, message=str(e))), 404
+                except DuplicateValueException as e:
+                    logging.warning("Duplicate value [%s %s]: %s" % (request.method, request.url, e))
+                    return json_response(HttpResponse(code=409, message=str(e))), 409
+                except AccessDeniedException as e:
+                    logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
+                    return json_response(HttpResponse(code=403, message="Access denied (Forbidden)")), 403
+                except Exception as e:
+                    logging.error("Internal error [%s %s]: %s" % (request.method, request.url, e))
+                    logging.exception(e)
+                    return json_response(HttpResponse(code=500, message="Internal error")), 500
+            else:
+                try:
+                    return f(*args, **kwargs)
+                except NotFoundException as e:
+                    logging.warning("Not found [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/server_error.html", error=str(e)), 404
+                except (InvalidInputException, InvalidValueException, InvalidStateException) as e:
+                    logging.warning("Bad request [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/server_error.html", error=str(e)), 400
+                except AccessDeniedException as e:
+                    logging.warning("Access denied (Forbidden) [%s %s]: %s" % (request.method, request.url, e))
+                    return render_template("error/access_denied.html"), 403
+                except Exception as e:
+                    logging.error("Internal error [%s %s]: %s" % (request.method, request.url, e))
+                    logging.exception(e)
+                    return render_template("error/server_error.html"), 500
+
+        return response_handler
+
+    return decorator
+
 class Decorator(object):
     def init(self):
         pass
