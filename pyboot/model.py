@@ -64,7 +64,7 @@ class Model(DictSerializable):
         if not structure: return obj_dict
 
         for key, value_type in structure.items():
-            if value_type is None: continue
+            if key not in self.__dict__ or value_type is None: continue
             if type(value_type) != type: value_type = type(value_type)
 
             value = getattr(self, key, None)
