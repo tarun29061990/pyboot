@@ -172,25 +172,25 @@ class DatabaseModel(Model):
         return query
 
     @classmethod
-    def get_all(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
+    def get_all(cls, session: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
                 include: list = None) -> list:
-        query = cls._get_all_query(db, filters=filters, include=include)
+        query = cls._get_all_query(session, filters=filters, include=include)
         query = cls._query(query, start=start, count=count + 1, order_by=order_by)
         return query.all()
 
     @classmethod
-    def _get_all_query(cls, db: Session, filters: dict = None, include: list = None):
+    def _get_all_query(cls, session: Session, filters: dict = None, include: list = None):
         columns = inspect(cls).columns
-        query = db.query(cls)
+        query = session.query(cls)
         query = cls.join_tables(query, include)
         query = cls._generate_filter_query(query, filters, columns)
         return query
 
     @classmethod
-    def get_page(cls, db: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
+    def get_page(cls, session: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
                  include: list = None) -> Page:
         page = Page()
-        query = cls._get_all_query(db, filters=filters, include=include)
+        query = cls._get_all_query(session, filters=filters, include=include)
         page.items = cls._query(query, start=start, count=count + 1, order_by=order_by).all()
         page.total_count = query.count()
         page.gen_page_data(start, count)
@@ -250,14 +250,14 @@ class DatabaseModel(Model):
                 return range_query
 
     @classmethod
-    def get(cls, db: Session, id: int, include: list = None):
-        query = db.query(cls)  # type: Query
+    def get(cls, session: Session, id: int, include: list = None):
+        query = session.query(cls)  # type: Query
         query = cls.join_tables(query, include)
         return query.get(id)
 
     @classmethod
-    def delete(cls, db: Session, id: int):
-        db.query(cls).filter(cls.id == id).delete()
+    def delete(cls, session: Session, id: int):
+        session.query(cls).filter(cls.id == id).delete()
 
     @classmethod
     def join_tables(cls, query: Query, include: list = None) -> Query:
