@@ -27,7 +27,7 @@ class Company(Model):
         "name": str,
         "start_date": datetime.date,
         "manager_id": int,
-        "manager": Employee,
+        "manager": "json_model_test.Employee",
         "all_employees": [Employee],
         "ceo_details": {
             "ceo": Employee,

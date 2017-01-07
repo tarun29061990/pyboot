@@ -26,6 +26,17 @@ class Client(DBModelBase):
     person_id = Column(Integer, ForeignKey(Person.id))
     person = relationship(Person)
 
+class City(DatabaseModel):
+    __tablename__ = "cities"
+
+    code = Column(String(64), nullable=False)
+    display_name = Column(String(64), nullable=False)
+    state_id = Column(Integer, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    updated_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
+    created_by_id = Column(Integer, nullable=False)
+    updated_by_id = Column(Integer, nullable=False)
 
 class ModelTest(TestCase):
     def test_to_dict_deep(self):

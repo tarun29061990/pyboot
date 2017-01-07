@@ -7,6 +7,7 @@ import iso8601
 import pytz
 import tzlocal
 
+from importlib import import_module
 from pyboot.exception import InvalidValueException
 
 
@@ -382,7 +383,6 @@ class TypeUtil:
 class ClassUtil:
     @staticmethod
     def get_class_by_name(path):
-        from importlib import import_module
         module_path, _, class_name = path.rpartition('.')
         mod = import_module(module_path)
         return getattr(mod, class_name)

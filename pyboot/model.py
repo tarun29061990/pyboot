@@ -65,7 +65,7 @@ class Model(DictSerializable):
 
         for key, value_type in structure.items():
             if key not in self.__dict__ or value_type is None: continue
-            if type(value_type) != type: value_type = type(value_type)
+            value_type = self.__convert_value_type(value_type)
 
             value = getattr(self, key, None)
             if value_type is list:
@@ -73,7 +73,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.serialize_dict(key, value, structure[key])
             elif issubclass(value_type, Model):
-                converted_value = self.serialize_model(key, value, structure[key])
+                converted_value = self.serialize_model(key, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
@@ -87,7 +87,7 @@ class Model(DictSerializable):
 
         for key, value_type in structure.items():
             if value_type is None: continue
-            if type(value_type) != type: value_type = type(value_type)
+            value_type = self.__convert_value_type(value_type)
 
             value = obj_dict.get(key)
             if value_type is list:
@@ -95,7 +95,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.deserialize_dict(key, value, structure[key])
             elif issubclass(value_type, Model):
-                converted_value = self.deserialize_model(key, value, structure[key])
+                converted_value = self.deserialize_model(key, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
@@ -107,7 +107,7 @@ class Model(DictSerializable):
 
         value_type = structure[0]
         if not value_type: return
-        if type(value_type) != type: value_type = type(value_type)
+        value_type = self.__convert_value_type(value_type)
 
         return_list = []
         for value in value_list:
@@ -121,7 +121,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.serialize_dict(field_name, value, structure[0])
             elif issubclass(value_type, Model):
-                converted_value = self.serialize_model(field_name, value, structure[0])
+                converted_value = self.serialize_model(field_name, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
@@ -147,7 +147,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.serialize_dict(field_name, value, structure[key])
             elif issubclass(value_type, Model):
-                converted_value = self.serialize_model(field_name, value, structure[key])
+                converted_value = self.serialize_model(field_name, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
                 if type(converted_value) != value_type:
@@ -175,7 +175,7 @@ class Model(DictSerializable):
 
         value_type = structure[0]
         if not value_type: return
-        if type(value_type) != type: value_type = type(value_type)
+        value_type = self.__convert_value_type(value_type)
 
         return_list = []
         for value in value_list:
@@ -184,7 +184,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.deserialize_dict(field_name, value, structure[0])
             elif issubclass(value_type, Model):
-                converted_value = self.deserialize_model(field_name, value, structure[0])
+                converted_value = self.deserialize_model(field_name, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
@@ -201,7 +201,8 @@ class Model(DictSerializable):
         if value_dict is None or structure is None: return
         return_dict = {}
         for key, value_type in structure.items():
-            if type(value_type) != type: value_type = type(value_type)
+            value_type = self.__convert_value_type(value_type)
+
             if key in value_dict: value = value_dict[key]
             if not value: continue
 
@@ -210,7 +211,7 @@ class Model(DictSerializable):
             elif value_type is dict:
                 converted_value = self.deserialize_dict(field_name, value, structure[key])
             elif issubclass(value_type, Model):
-                converted_value = self.deserialize_model(field_name, value, structure[key])
+                converted_value = self.deserialize_model(field_name, value, value_type)
             else:
                 converted_value = TypeUtil.cast(value, value_type)
                 if type(converted_value) != value_type:
@@ -231,40 +232,46 @@ class Model(DictSerializable):
         else:
             return value_obj
 
-            # def _include_obj(self, obj_dict: dict, field_name: str):
-            #     value_obj = getattr(self, field_name, None)
-            #     if value_obj and isinstance(value_obj, Model):
-            #         obj_dict[field_name] = value_obj.to_dict_deep()
-            #     else:
-            #         obj_dict[field_name] = value_obj
-            #
-            #         # def _exclude_obj(self, obj_dict: dict, name: str):
-            #         #     if not obj_dict or name not in obj_dict: return
-            #         #     obj = obj_dict[name]
-            #         #     field_name = name + "_id"
-            #         #     if "id" in obj and field_name in self.__class__._structure: setattr(self, field_name, obj["id"])
-            #
-            # def _include_obj_list(self, obj_dict: dict, name: str):
-            #     output_obj_list = []
-            #     obj_list = getattr(self, name, None)
-            #     if obj_list and isinstance(obj_list, list):
-            #         for obj in obj_list:
-            #             if isinstance(obj, Model):
-            #                 output_obj_list.append(obj.to_dict_deep())
-            #             else:
-            #                 output_obj_list.append(obj)
-            #
-            #     if output_obj_list:
-            #         obj_dict[name] = output_obj_list
-            #
-            # def _include_obj_list(self, obj_dict: dict, include: list, name: str):
-            #     output_obj_list = []
-            #     obj_list = getattr(self, name, None) if include and name in include else None
-            #     if obj_list and isinstance(obj_list, list):
-            #         for obj in obj_list:
-            #             if isinstance(obj, DictSerializable):
-            #                 output_obj_list.append(obj.to_dict_deep())
-            #             else:
-            #                 output_obj_list.append(obj)
-            #     if output_obj_list:
-            #       obj_dict[name] = output_obj_list
+    def __convert_value_type(self, value_type):
+        # if type(value_type) != type: value_type = type(value_type)
+        if type(value_type) is list or type(value_type) is dict: value_type = type(value_type)
+        if type(value_type) is str: value_type = ClassUtil.get_class_by_name(value_type)
+        return value_type
+
+        # def _include_obj(self, obj_dict: dict, field_name: str):
+        #     value_obj = getattr(self, field_name, None)
+        #     if value_obj and isinstance(value_obj, Model):
+        #         obj_dict[field_name] = value_obj.to_dict_deep()
+        #     else:
+        #         obj_dict[field_name] = value_obj
+        #
+        #         # def _exclude_obj(self, obj_dict: dict, name: str):
+        #         #     if not obj_dict or name not in obj_dict: return
+        #         #     obj = obj_dict[name]
+        #         #     field_name = name + "_id"
+        #         #     if "id" in obj and field_name in self.__class__._structure: setattr(self, field_name, obj["id"])
+        #
+        # def _include_obj_list(self, obj_dict: dict, name: str):
+        #     output_obj_list = []
+        #     obj_list = getattr(self, name, None)
+        #     if obj_list and isinstance(obj_list, list):
+        #         for obj in obj_list:
+        #             if isinstance(obj, Model):
+        #                 output_obj_list.append(obj.to_dict_deep())
+        #             else:
+        #                 output_obj_list.append(obj)
+        #
+        #     if output_obj_list:
+        #         obj_dict[name] = output_obj_list
+        #
+        # def _include_obj_list(self, obj_dict: dict, include: list, name: str):
+        #     output_obj_list = []
+        #     obj_list = getattr(self, name, None) if include and name in include else None
+        #     if obj_list and isinstance(obj_list, list):
+        #         for obj in obj_list:
+        #             if isinstance(obj, DictSerializable):
+        #                 output_obj_list.append(obj.to_dict_deep())
+        #             else:
+        #                 output_obj_list.append(obj)
+        #     if output_obj_list:
+        #       obj_dict[name] = output_obj_list
