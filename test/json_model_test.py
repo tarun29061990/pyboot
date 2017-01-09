@@ -66,7 +66,7 @@ class ModelTest(TestCase):
 
     def test_from_dict_deep(self):
         obj_dict = load_json(
-            '{"manager_id": 1, "start_date": "2013-04-28", "name": "Livspace", "id": 10, "all_employees": [{"start_date": "2013-04-29", "name": "Rajeev Sharma", "id": 1}, {"start_date": "2015-01-01", "name": "Vidur Jain", "id": 2}], "manager": {"start_date": "2013-04-29", "name": "Rajeev Sharma", "id": 1}, "ceo_details": {"key1": {"key2": {"start_date": "2014-01-01", "name": "Anuj Srivastava", "id": 4}}, "start_date": "2014-01-01", "ceo": {"start_date": "2014-01-01", "name": "Anuj Srivastava", "id": 3}}}')
+            '{"manager_id": 1, "start_date": "2013-04-28", "id": 10, "all_employees": [{"start_date": "2013-04-29", "name": "Rajeev Sharma", "id": 1}, {"start_date": "2015-01-01", "name": "Vidur Jain", "id": 2}], "manager": {"start_date": "2013-04-29", "name": "Rajeev Sharma", "id": 1}, "ceo_details": {"key1": {"key2": {"start_date": "2014-01-01", "name": "Anuj Srivastava", "id": 4}}, "start_date": "2014-01-01", "ceo": {"start_date": "2014-01-01", "name": "Anuj Srivastava", "id": 3}}}')
 
         company = Company()
         company.from_dict_deep(obj_dict)

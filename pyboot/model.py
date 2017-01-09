@@ -237,7 +237,7 @@ class Model(DictSerializable):
         if value_obj is None or value_type is None: return
 
         if issubclass(value_type, Model):
-            if value_type == Model: return
+            # if value_type == Model: return
             return value_type().from_dict_deep(value_obj)
         else:
             return value_obj
