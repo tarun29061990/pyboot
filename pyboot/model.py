@@ -77,7 +77,8 @@ class Model(DictSerializable):
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
-            obj_dict[key] = converted_value
+            if converted_value is not None:
+                obj_dict[key] = converted_value
 
         return obj_dict
 
@@ -99,7 +100,9 @@ class Model(DictSerializable):
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
-            setattr(self, key, converted_value)
+            if converted_value is not None:
+                setattr(self, key, converted_value)
+
         return self
 
     def serialize_list(self, field_name, value_list: list, structure: list):
@@ -127,6 +130,7 @@ class Model(DictSerializable):
 
             if converted_value is not None:
                 return_list.append(converted_value)
+
         return return_list
 
     def serialize_dict(self, field_name, value_dict: dict, structure: dict):
@@ -155,7 +159,9 @@ class Model(DictSerializable):
                         "Type mismatch for field '%s'. Value type '%s' does not match with defined type '%s'" % (
                             key, type(value_type), value_type))
 
-            return_dict[key] = converted_value
+            if converted_value is not None:
+                return_dict[key] = converted_value
+
         return return_dict
 
     def serialize_model(self, field_name, value_obj, value_type):
@@ -195,6 +201,7 @@ class Model(DictSerializable):
 
             if converted_value is not None:
                 return_list.append(converted_value)
+
         return return_list
 
     def deserialize_dict(self, field_name, value_dict: dict, structure: dict):
@@ -219,11 +226,13 @@ class Model(DictSerializable):
                         "Type mismatch for field '%s'. Value type '%s' does not match with defined type '%s'" % (
                             key, type(value_type), value_type))
 
-            return_dict[key] = converted_value
+            if converted_value is not None:
+                return_dict[key] = converted_value
+
         return return_dict
 
     def deserialize_model(self, field_name, value_obj, value_type):
-        logging.debug("Deserializing model")
+        logging.debug("De-serializing model")
         if value_obj is None or value_type is None: return
 
         if issubclass(value_type, Model):
