@@ -191,22 +191,22 @@ class Parser(object):
 
     @staticmethod
     def str(value, default=None):
-        if value is None or value == "": return default
+        if value is None: return default
         return str(value)
 
     @staticmethod
     def str_title(value, default=None):
-        if value is None or value == "": return default
+        if value is None: return default
         return str(value).title()
 
     @staticmethod
     def str_lower(value, default=None):
-        if value is None or value == "": return default
+        if value is None: return default
         return str(value).lower()
 
     @staticmethod
     def str_upper(value, default=None):
-        if value is None or value == "": return default
+        if value is None: return default
         return str(value).upper()
 
     @staticmethod

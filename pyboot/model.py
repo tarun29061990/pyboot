@@ -29,17 +29,11 @@ class Model(DictSerializable):
 
     def _to_dict_field(self, obj_dict, field_name: str, value_type=None):
         if field_name is None or field_name not in self.__dict__: return
-
-        value = getattr(self, field_name, None)
-        if value is not None:
-            obj_dict[field_name] = TypeUtil.cast(value, value_type)
+        obj_dict[field_name] = TypeUtil.cast(getattr(self, field_name, None), value_type)
 
     def _from_dict_field(self, obj_dict: dict, field_name: str, value_type=None):
-        if not field_name or not obj_dict or field_name not in obj_dict: return
-
-        value = obj_dict.get(field_name)
-        if value is not None:
-            setattr(self, field_name, TypeUtil.cast(value, value_type))
+        if not obj_dict or not field_name or field_name not in obj_dict: return
+        setattr(self, field_name, TypeUtil.cast(obj_dict.get(field_name), value_type))
 
     def to_dict(self):
         obj_dict = {}
@@ -64,10 +58,12 @@ class Model(DictSerializable):
         if not structure: return obj_dict
 
         for key, value_type in structure.items():
-            if key not in self.__dict__ or value_type is None: continue
-            value_type = self.__convert_value_type(value_type)
+            if key in self.__dict__:
+                value = getattr(self, key, None)
+            else:
+                continue
 
-            value = getattr(self, key, None)
+            value_type = self.__convert_value_type(value_type)
             if value_type is list:
                 converted_value = self.serialize_list(key, value, structure[key])
             elif value_type is dict:
@@ -77,8 +73,8 @@ class Model(DictSerializable):
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
-            if converted_value is not None:
-                obj_dict[key] = converted_value
+            # if converted_value is not None:
+            obj_dict[key] = converted_value
 
         return obj_dict
 
@@ -87,10 +83,12 @@ class Model(DictSerializable):
         if not structure: return self
 
         for key, value_type in structure.items():
-            if value_type is None: continue
-            value_type = self.__convert_value_type(value_type)
+            if key in obj_dict:
+                value = obj_dict[key]
+            else:
+                continue
 
-            value = obj_dict.get(key)
+            value_type = self.__convert_value_type(value_type)
             if value_type is list:
                 converted_value = self.deserialize_list(key, value, structure[key])
             elif value_type is dict:
@@ -100,8 +98,8 @@ class Model(DictSerializable):
             else:
                 converted_value = TypeUtil.cast(value, value_type)
 
-            if converted_value is not None:
-                setattr(self, key, converted_value)
+            # if converted_value is not None:
+            setattr(self, key, converted_value)
 
         return self
 
@@ -142,10 +140,12 @@ class Model(DictSerializable):
 
         return_dict = {}
         for key, value_type in structure.items():
-            if type(value_type) != type: value_type = type(value_type)
-            if key in value_dict: value = value_dict[key]
-            if not value: continue
+            if key in value_dict:
+                value = value_dict[key]
+            else:
+                continue
 
+            value_type = self.__convert_value_type(value_type)
             if value_type is list:
                 converted_value = self.serialize_list(field_name, value, structure[key])
             elif value_type is dict:
@@ -159,8 +159,8 @@ class Model(DictSerializable):
                         "Type mismatch for field '%s'. Value type '%s' does not match with defined type '%s'" % (
                             key, type(value_type), value_type))
 
-            if converted_value is not None:
-                return_dict[key] = converted_value
+            # if converted_value is not None:
+            return_dict[key] = converted_value
 
         return return_dict
 
@@ -208,11 +208,12 @@ class Model(DictSerializable):
         if value_dict is None or structure is None: return
         return_dict = {}
         for key, value_type in structure.items():
+            if key in value_dict:
+                value = value_dict[key]
+            else:
+                continue
+
             value_type = self.__convert_value_type(value_type)
-
-            if key in value_dict: value = value_dict[key]
-            if not value: continue
-
             if value_type is list:
                 converted_value = self.deserialize_list(field_name, value, structure[key])
             elif value_type is dict:
@@ -226,8 +227,8 @@ class Model(DictSerializable):
                         "Type mismatch for field '%s'. Value type '%s' does not match with defined type '%s'" % (
                             key, type(value_type), value_type))
 
-            if converted_value is not None:
-                return_dict[key] = converted_value
+            # if converted_value is not None:
+            return_dict[key] = converted_value
 
         return return_dict
 

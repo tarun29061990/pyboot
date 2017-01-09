@@ -1,4 +1,7 @@
+import datetime
 import sys, os
+
+from sqlalchemy import DateTime
 
 sys.path.insert(0, os.path.abspath("../"))
 
@@ -26,7 +29,8 @@ class Client(DBModelBase):
     person_id = Column(Integer, ForeignKey(Person.id))
     person = relationship(Person)
 
-class City(DatabaseModel):
+
+class City(DBModelBase):
     __tablename__ = "cities"
 
     code = Column(String(64), nullable=False)
@@ -37,6 +41,7 @@ class City(DatabaseModel):
     updated_at = Column(DateTime, default=datetime.datetime.now(), nullable=False)
     created_by_id = Column(Integer, nullable=False)
     updated_by_id = Column(Integer, nullable=False)
+
 
 class ModelTest(TestCase):
     def test_to_dict_deep(self):

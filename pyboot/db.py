@@ -82,39 +82,39 @@ class DatabaseModel(Model):
         super().from_dict(obj_dict)
         return self
 
-    def to_dict_deep(self, obj_always: bool = False) -> dict:
-        self.__obj_always = obj_always
-        return super().to_dict_deep()
-
-        # if not obj_always:
-        #     return super().to_dict_deep()
-        #
-        # obj_dict = self.to_dict()
-        # structure = self.__class__._get_structure()
-        # if not structure: return obj_dict
-        # for field_name in structure.keys():
-        #     obj_type = structure[field_name]
-        #     if issubclass(obj_type, Model):
-        #         self._include_obj(obj_dict, field_name)
-        #     elif obj_type is list:
-        #         self._include_obj_list(obj_dict, field_name)
-        # return obj_dict
-
-    def from_dict_deep(self, obj_dict: dict, obj_always: bool = False):
-        self.__obj_always = obj_always
-        return super().from_dict_deep(obj_dict)
-
-        # if not obj_always:
-        #     return super().from_dict_deep(obj_dict)
-        #
-        # self.from_dict(obj_dict)
-        # structure = self.__class__._get_structure()
-        # if not structure: return self
-        # for field_name in structure:
-        #     obj_type = structure[field_name]
-        #     if issubclass(obj_type, Model):
-        #         self._exclude_obj(obj_dict, field_name)
-        # return self
+    # def to_dict_deep(self, obj_always: bool = False) -> dict:
+    #     self.__obj_always = obj_always
+    #     return super().to_dict_deep()
+    #
+    #     # if not obj_always:
+    #     #     return super().to_dict_deep()
+    #     #
+    #     # obj_dict = self.to_dict()
+    #     # structure = self.__class__._get_structure()
+    #     # if not structure: return obj_dict
+    #     # for field_name in structure.keys():
+    #     #     obj_type = structure[field_name]
+    #     #     if issubclass(obj_type, Model):
+    #     #         self._include_obj(obj_dict, field_name)
+    #     #     elif obj_type is list:
+    #     #         self._include_obj_list(obj_dict, field_name)
+    #     # return obj_dict
+    #
+    # def from_dict_deep(self, obj_dict: dict, obj_always: bool = False):
+    #     self.__obj_always = obj_always
+    #     return super().from_dict_deep(obj_dict)
+    #
+    #     # if not obj_always:
+    #     #     return super().from_dict_deep(obj_dict)
+    #     #
+    #     # self.from_dict(obj_dict)
+    #     # structure = self.__class__._get_structure()
+    #     # if not structure: return self
+    #     # for field_name in structure:
+    #     #     obj_type = structure[field_name]
+    #     #     if issubclass(obj_type, Model):
+    #     #         self._exclude_obj(obj_dict, field_name)
+    #     # return self
 
     # def _include_obj_list(self, obj_dict: dict, name: str):
     #     if not self.__obj_always:
