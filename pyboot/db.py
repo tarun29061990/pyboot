@@ -172,7 +172,7 @@ class DatabaseModel(Model):
         return query
 
     @classmethod
-    def get_first(cls, session: Session, filters: dict = None, start: int = 0, include: list = None) -> list:
+    def get_first(cls, session: Session, filters: dict = None, start: int = 0, include: list = None):
         query = cls._get_all_query(session, filters=filters, include=include)
         query = cls._query(query, start=start)
         return query.first()
@@ -180,6 +180,35 @@ class DatabaseModel(Model):
     @classmethod
     def get_all(cls, session: Session, filters: dict = None, start: int = 0, count: int = 25, order_by=None,
                 include: list = None) -> list:
+        """ Filter structure
+        filters= [
+            {
+                "or": [
+                    {op:"in", column:'column', value:'value'},
+                    {op:"equal", column:'column', value:'value'},
+                    {op:"range", column:'column', value:['start_value', 'end_value']},
+                    {op:"ilike", column:'column', value:'value'}
+                 ]
+            },
+            {op:"in", column:'column', value:'value'},
+            {op:"equal", column:'column', value:'value'},
+            {op:"range", column:'column', value:['start_value', 'end_value']},
+            {op:"ilike", column:'column', value:'value'}
+        ]
+
+        Example of filter query:
+        filter_query = []
+        filter_query.append(FilterOperation(FilterOperationEnum.IN, "id", [1, 5,10,12]).db_filter())
+        filter_query.append(FilterOperation(FilterOperationEnum.EQUAL, "name", "TestName").db_filter())
+
+        # or query
+
+        filter_or_query = []
+        filter_or_query.append(FilterOperation(FilterOperationEnum.IN, "user_id", [1, 5,10,12]).db_filter())
+        filter_or_query.append(FilterOperation(FilterOperationEnum.IN, "customer_id", [1, 5,10,12]).db_filter())
+        filter_query.append({"or": filter_or_query})
+        """
+
         query = cls._get_all_query(session, filters=filters, include=include)
         query = cls._query(query, start=start, count=count + 1, order_by=order_by)
         return query.all()
