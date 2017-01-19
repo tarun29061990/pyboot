@@ -114,6 +114,12 @@ class DatabaseModel(Model):
         return query.all()
 
     @classmethod
+    def get_first(cls, db: Session, filters: dict = None, start: int = 0, order_by=None, include: list = None) -> list:
+        query = cls._get_all_query(db, filters=filters, include=include)
+        query = cls._query(query, start=start, count=1, order_by=order_by)
+        return query.first()
+
+    @classmethod
     def _get_all_query(cls, db: Session, filters: dict = None, include: list = None):
         columns = inspect(cls).columns
         query = db.query(cls)
