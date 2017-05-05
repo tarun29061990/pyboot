@@ -45,7 +45,15 @@ class Page(JSONSerializable):
     def to_json_dict(self, include: list = None):
         json_dict = super().to_json_dict(include)
         json_dict["count"] = self.count
-        json_dict["items"] = [item.to_json_dict(include) for item in self.items]
+        if isinstance(self.items, list):
+            json_dict["items"] = []
+            for item in self.items:
+                if isinstance(item, JSONSerializable):
+                    json_dict["items"].append(item.to_json_dict(include))
+                else:
+                    json_dict["items"].append(item)
+        else:
+            json_dict["items"] = self.items
         json_dict["total_count"] = self.total_count
         json_dict["is_prev"] = self.is_prev_page
         json_dict["is_next"] = self.is_next_page

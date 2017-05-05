@@ -1,6 +1,7 @@
 from enum import Enum
 
 from sqlalchemy import Column, Integer, inspect, String, Float, Boolean, DateTime, Date, and_, or_
+from sqlalchemy import distinct
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import RelationshipProperty, Query, Session
 
@@ -133,6 +134,28 @@ class DatabaseModel(Model):
         query = cls._get_all_query(db, filters=filters, include=include)
         page.items = cls._query(query, start=start, count=count + 1, order_by=order_by).all()
         page.total_count = query.count()
+        page.gen_page_data(start, count)
+        return page
+
+    @classmethod
+    def dump_detail_page(cls, db, fields, filters, start=0, count=1000):
+        page = Page()
+        query = db.query().add_column(distinct(cls.id))
+        for field in fields:
+            query = query.add_column(field)
+        query = cls._get_all_query(db, filters=filters)
+        result_rows = cls._query(query, start=start, count=count + 1).all()
+        page.total_count = query.count()
+        items = []
+        for result in result_rows:
+            item = dict()
+            item["id"] = result[0]
+            count = 1
+            for field in fields:
+                item[field.key] = result[count]
+                count += 1
+            items.append(item)
+        page.items = items
         page.gen_page_data(start, count)
         return page
 
