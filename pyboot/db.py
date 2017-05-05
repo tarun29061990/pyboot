@@ -140,10 +140,11 @@ class DatabaseModel(Model):
     @classmethod
     def dump_detail_page(cls, db, fields, filters, start=0, count=1000):
         page = Page()
+        columns = inspect(cls).columns
         query = db.query().add_column(distinct(cls.id))
         for field in fields:
             query = query.add_column(field)
-        query = cls._get_all_query(db, filters=filters)
+        query = cls._generate_filter_query(query, filters, columns)
         result_rows = cls._query(query, start=start, count=count + 1).all()
         page.total_count = query.count()
         items = []
